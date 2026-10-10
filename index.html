@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<!--
+  © 2026 MieeL（ミエル） https://www.mieel-support-school.com/  All rights reserved.
+  学校・家庭・療育機関などで子どもの学習に使うこと、作ったプリントを印刷して配ることは自由です。
+  プログラム・画像・文章の無断転載・複製、改変しての公開・再配布、販売はお断りします（くわしくは LICENSE.md）。
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="みとおし">
+<meta name="theme-color" content="#F2F7F5">
+<title>みとおし ボード｜MieeL</title>
+<style>
+  /* ============================================================
+     みとおし ボード（いつ おわる？ つぎは なに？）  見た目（CSS）
+     ============================================================ */
+  :root {
+    --mieel: radial-gradient(circle at 50% 0%,#1B8FE8 0%,#2BB8D6 28%,#3FCB9E 45%,#8FD24A 58%,#F4D027 72%,#F7941E 100%);
+    --bg: #F2F7F5; --ink: #1F2937; --sub: #6B7280; --line: #D5E3DD;
+    --go: #2F9E44; --go-d: #237A34; --blue: #1C7ED6; --blue-d: #1864AB; --orange: #F76707; --gold: #FAB005; --red: #E03131; --teal: #0CA678;
+    --brk: #20C997; --fun: #F06595;
+    --emo: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "BIZ UDPGothic", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    font-weight: 700; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    touch-action: manipulation; overscroll-behavior: none;
+    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  input, textarea { -webkit-user-select: text; user-select: text; }
+  .emo { font-family: var(--emo); font-weight: 400; line-height: 1; }
+
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 8px 16px; min-height: 64px; }
+  .chip { display: flex; align-items: center; gap: 6px; padding: 4px 14px 4px 8px; border-radius: 999px; background: #fff; border: 3px solid var(--line); font-size: 19px; white-space: nowrap; touch-action: none; }
+  .chip .emo { font-size: 26px; }
+  .chip.home { border-color: #96F2D7; background: #E6FCF5; color: #087F5B; position: relative; overflow: hidden; }
+  .chip.home i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(12, 166, 120, .25); }
+  .chip.home.pressing i { width: 100%; transition: width 1.2s linear; }
+  .chip.home span { position: relative; }
+  .brand { flex: 1; display: flex; justify-content: center; align-items: center; gap: 14px; color: #6FA08E; font-size: 16px; letter-spacing: .1em; min-width: 0; }
+  .mieel-brand { display: flex; align-items: center; gap: 7px; white-space: nowrap; flex: none; }
+  .orb-mini { width: 22px; height: 22px; border-radius: 50%; background: var(--mieel); flex: none; }
+  .mieel-brand strong { font-size: 16px; color: var(--ink); }
+  .mieel-brand .url { font-size: 12px; color: var(--sub); font-weight: 600; }
+  .mieel-foot { margin-top: 28px; padding-top: 16px; border-top: 1px solid #E9ECEF; text-align: center; color: var(--sub); font-size: 13px; line-height: 1.8; }
+  .mieel-foot .mieel-brand { justify-content: center; }
+  .mieel-foot a { color: #1C7ED6; font-weight: 700; text-decoration: none; font-size: 14px; }
+  .gear { position: relative; width: 52px; height: 52px; border-radius: 50%; border: none; background: transparent; opacity: .35; font-size: 26px; display: grid; place-items: center; }
+  .gear::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; border: 4px solid transparent; }
+  .gear.pressing { opacity: 1; }
+  .gear.pressing::after { border-color: var(--blue); animation: ring 1.5s linear forwards; }
+  @keyframes ring { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+  main { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 0 16px 12px; }
+  .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; gap: clamp(8px, 1.4vh, 14px); animation: fadein .25s ease-out; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pulse { to { transform: scale(1.05); } }
+  @keyframes blink { 50% { opacity: .35; } }
+  .title { font-size: clamp(24px, 3.4vw, 42px); text-align: center; margin: 0; line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; }
+  .title small { display: block; font-size: .5em; color: var(--sub); }
+  .actions { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .big-btn { min-width: min(280px, 78vw); min-height: 78px; padding: 0 28px; border: none; border-radius: 999px; color: #fff; font-size: clamp(21px, 3vw, 34px); display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+  .big-btn.go { background: var(--go); box-shadow: 0 8px 0 var(--go-d); }
+  .big-btn.blue { background: var(--blue); box-shadow: 0 8px 0 var(--blue-d); }
+  .big-btn.white { background: #fff; color: var(--ink); box-shadow: 0 8px 0 var(--line); border: 4px solid var(--line); }
+  .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  .mid-btn { min-height: 54px; padding: 0 18px; border-radius: 999px; border: 4px solid var(--line); background: #fff; font-size: clamp(15px, 1.9vw, 20px); box-shadow: 0 5px 0 var(--line); display: inline-flex; align-items: center; gap: 8px; }
+  .mid-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--line); }
+  .mid-btn.warn { border-color: #FFC9C9; color: #C92A2A; box-shadow: 0 5px 0 #FFC9C9; }
+
+  /* カード（しゃしん・えもじ） */
+  .pic { position: relative; display: grid; place-items: center; overflow: hidden; background: #fff; }
+  .pic img { width: 100%; height: 100%; object-fit: cover; }
+  .pic .emo { font-size: var(--es, 60px); }
+
+  /* ホーム */
+  .home { align-items: center; }
+  .home > :first-child { margin-top: auto; } .home > :last-child { margin-bottom: auto; }
+  .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 44vw), 1fr)); gap: 14px; width: min(980px, 100%); }
+  .mcard { background: #fff; border: 6px solid var(--c); border-radius: 30px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; box-shadow: 0 7px 0 var(--c); touch-action: none; position: relative; overflow: hidden; }
+  .mcard .emo { font-size: clamp(50px, 8vh, 80px); }
+  .mcard b { font-size: clamp(20px, 2.6vw, 30px); color: var(--c); }
+  .mcard small { font-size: clamp(13px, 1.6vw, 17px); color: var(--sub); }
+  .mcard:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--c); }
+  .mcard .lp { position: absolute; left: 0; bottom: 0; height: 8px; width: 0; background: var(--c); }
+  .mcard.pressing .lp { width: 100%; transition: width 1.2s linear; }
+  .privacy { font-size: 14px; color: var(--sub); text-align: center; background: #fff; border-radius: 14px; padding: 8px 14px; border: 2px dashed var(--line); }
+
+  /* ---------- こども：いま と つぎ ---------- */
+  .now { gap: 10px; }
+  .strip { display: flex; gap: 8px; overflow-x: auto; padding: 6px 4px 8px; flex: none; scroll-behavior: smooth; }
+  .scard { flex: none; width: clamp(70px, 9vw, 104px); border-radius: 16px; background: #fff; border: 4px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 4px 6px; position: relative; font-size: clamp(11px, 1.3vw, 14px); text-align: center; line-height: 1.25; }
+  .scard .pic { width: 100%; aspect-ratio: 1; border-radius: 10px; --es: clamp(30px, 4.6vw, 52px); }
+  .scard.done { opacity: .4; filter: grayscale(.7); }
+  .scard.done::after { content: "✓"; position: absolute; right: 4px; top: 2px; background: var(--go); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; font-size: 15px; }
+  .scard.cur { border-color: var(--blue); box-shadow: 0 0 0 4px #A5D8FF; transform: scale(1.06); }
+  .scard.brk { border-color: var(--brk); } .scard.fun { border-color: var(--fun); }
+  .scard.chg::before { content: "かわった"; position: absolute; left: 50%; top: -10px; transform: translateX(-50%); background: var(--orange); color: #fff; font-size: 11px; border-radius: 999px; padding: 0 6px; white-space: nowrap; z-index: 1; }
+  .nowmain { flex: 1; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr); gap: clamp(12px, 2.4vw, 28px); min-height: 0; align-items: stretch; }
+  .curbox { background: #fff; border-radius: 34px; border: 6px solid var(--blue); padding: clamp(10px, 1.6vw, 18px); display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 0; }
+  .curbox.brk { border-color: var(--brk); } .curbox.fun { border-color: var(--fun); }
+  .curbox .lab { font-size: clamp(18px, 2.2vw, 26px); color: var(--blue); }
+  .curbox .row { flex: 1; display: flex; align-items: center; justify-content: center; gap: clamp(12px, 2vw, 26px); width: 100%; min-height: 0; }
+  .curbox .pic { width: min(100%, 36vh); aspect-ratio: 1; border-radius: 26px; --es: clamp(90px, 18vh, 170px); flex: none; }
+  .curbox .nm { font-size: clamp(28px, 4.4vw, 54px); text-align: center; line-height: 1.25; word-break: keep-all; }
+  .tbox { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .left { font-size: clamp(24px, 3.6vw, 44px); text-align: center; white-space: nowrap; }
+  .left b { font-size: 1.35em; }
+  .endat { font-size: clamp(14px, 1.7vw, 19px); color: var(--sub); }
+  .pie { width: clamp(130px, 22vh, 220px); aspect-ratio: 1; }
+  .barv { width: min(100%, 520px); height: clamp(36px, 6vh, 60px); border-radius: 999px; background: #E9ECEF; overflow: hidden; border: 4px solid #DEE2E6; }
+  .barv i { display: block; height: 100%; border-radius: 999px; transition: width .3s linear, background-color .6s; }
+  .blocks { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 520px; }
+  .blocks i { width: clamp(30px, 4.6vh, 46px); aspect-ratio: 1; border-radius: 10px; background: var(--bc); transition: opacity .4s, transform .4s; }
+  .blocks i.gone { opacity: .12; transform: scale(.7); }
+  .tokens { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .tokens button { width: clamp(60px, 9vh, 90px); aspect-ratio: 1; border-radius: 50%; border: 5px solid #FFD43B; background: #FFF9DB; font-size: clamp(26px, 4vh, 40px); }
+  .tokens button.used { background: #E9ECEF; border-color: #CED4DA; color: transparent; position: relative; }
+  .tokens button.used::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--go); font-size: 1.4em; }
+  .tokens button.next { animation: pulse .8s ease-in-out infinite alternate; }
+  .lastone { white-space: nowrap; font-size: clamp(24px, 3.6vw, 44px); color: var(--orange); animation: pulse .7s ease-in-out infinite alternate; }
+  .nextbox { background: #fff; border-radius: 30px; border: 5px dashed #ADB5BD; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 0; }
+  .nextbox .lab { font-size: clamp(18px, 2.2vw, 26px); color: var(--sub); }
+  .nextbox .pic { width: min(100%, 22vh); aspect-ratio: 1; border-radius: 22px; --es: clamp(60px, 12vh, 110px); }
+  .nextbox .nm { font-size: clamp(22px, 3vw, 36px); text-align: center; }
+  .thenmsg { font-size: clamp(18px, 2.4vw, 28px); text-align: center; background: #E6FCF5; color: #087F5B; border-radius: 16px; padding: 6px 12px; }
+  .thenmsg.brk { background: #E6FCF5; } .thenmsg.fun { background: #FFF0F6; color: #C2255C; }
+  .nowfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .donebtn { flex: 1; min-width: min(320px, 70vw); max-width: 520px; min-height: 84px; border-radius: 999px; border: none; background: var(--go); color: #fff; font-size: clamp(24px, 3.4vw, 38px); box-shadow: 0 8px 0 var(--go-d); }
+  .donebtn:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--go-d); }
+  .tool { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--line); background: #fff; font-size: 24px; }
+  .warnbar { text-align: center; font-size: clamp(20px, 2.8vw, 32px); color: #fff; background: var(--orange); border-radius: 16px; padding: 6px; animation: blink 1s ease-in-out infinite; }
+  /* おしらせ（かわった・つぎは・ことば） */
+  .ov { position: fixed; inset: 0; z-index: 45; background: rgba(242, 247, 245, .97); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; animation: fadein .25s; text-align: center; overflow-y: auto; }
+  .ov h1 { margin: 0; font-size: clamp(28px, 4.6vw, 56px); }
+  .ov .sub { font-size: clamp(18px, 2.4vw, 28px); color: var(--sub); }
+  .tr { display: flex; align-items: center; justify-content: center; gap: clamp(14px, 3vw, 40px); flex-wrap: wrap; }
+  .tr .card { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .tr .pic { width: clamp(150px, 26vh, 260px); aspect-ratio: 1; border-radius: 28px; border: 6px solid var(--line); --es: clamp(90px, 16vh, 160px); }
+  .tr .card b { font-size: clamp(22px, 3vw, 36px); }
+  .tr .arrow { font-size: clamp(50px, 9vh, 90px); color: var(--blue); }
+  .tr .old .pic { filter: grayscale(1); opacity: .5; border-color: #FFA8A8; }
+  .tr .old .pic::after { content: "✕"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--red); font-size: 120px; font-weight: 900; }
+  .tr .new .pic { border-color: var(--go); box-shadow: 0 0 0 6px #B2F2BB; }
+  .cmp { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: start; width: min(1000px, 100%); }
+  .cmp .col { background: #fff; border-radius: 22px; padding: 10px; border: 4px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .cmp .col h3 { margin: 0; font-size: 20px; color: var(--sub); }
+  .cmp .it { display: flex; align-items: center; gap: 8px; font-size: clamp(15px, 2vw, 20px); border-radius: 12px; padding: 4px 8px; border: 3px solid transparent; text-align: left; }
+  .cmp .it .pic { width: 46px; height: 46px; border-radius: 10px; --es: 32px; flex: none; }
+  .cmp .it.rm { background: #FFF5F5; border-color: #FFA8A8; text-decoration: line-through; color: #C92A2A; }
+  .cmp .it.add { background: #EBFBEE; border-color: #8CE99A; }
+  .cmp .it.mv { background: #FFF4E6; border-color: #FFC078; }
+  .cmp .it small { margin-left: auto; font-size: 12px; white-space: nowrap; }
+  .cmp .mid { font-size: 44px; color: var(--blue); align-self: center; }
+  .banner { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 46; background: #fff; border: 8px solid var(--orange); border-radius: 36px; padding: 24px 40px; font-size: clamp(36px, 7vw, 86px); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.2); animation: pop .3s cubic-bezier(.2, 1.4, .4, 1); max-width: 92vw; }
+  .phr { position: fixed; right: 14px; bottom: 90px; z-index: 44; background: #fff; border-radius: 22px; box-shadow: 0 10px 40px rgba(0,0,0,.2); padding: 10px; display: grid; gap: 6px; max-height: 70vh; overflow-y: auto; }
+  .phr button { border: 3px solid var(--line); background: #fff; border-radius: 14px; padding: 8px 14px; font-size: 18px; text-align: left; }
+  .alldone { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+
+  /* まず → つぎ */
+  .ft { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(10px, 2vw, 24px); align-items: center; min-height: 0; }
+  .ftbox { background: #fff; border-radius: 34px; border: 6px solid var(--c); padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; height: 100%; justify-content: center; }
+  .ftbox h2 { margin: 0; font-size: clamp(26px, 4vw, 48px); color: var(--c); }
+  .ftbox .pic { width: min(100%, 34vh); aspect-ratio: 1; border-radius: 26px; --es: clamp(90px, 16vh, 160px); border: 4px dashed var(--line); }
+  .ftbox .nm { font-size: clamp(22px, 3.4vw, 40px); }
+  .ftbox.dim { opacity: .45; }
+  .ftt .pie { width: clamp(90px, 14vh, 150px); } .ftt .left { font-size: clamp(20px, 2.8vw, 32px); }
+  .ft .arrow { font-size: clamp(50px, 9vh, 96px); color: var(--sub); }
+
+  /* ---------- 先生：よていを つくる ---------- */
+  .plans { display: flex; flex-direction: column; gap: 10px; }
+  .pl { display: flex; align-items: center; gap: 10px; background: #fff; border: 4px solid var(--line); border-radius: 20px; padding: 10px 12px; flex-wrap: wrap; }
+  .pl .nm { flex: 1; min-width: 160px; font-size: clamp(17px, 2vw, 22px); }
+  .pl .nm small { display: block; color: var(--sub); font-size: 13px; }
+  .pl .thumbs { display: flex; gap: 3px; }
+  .pl .thumbs .pic { width: 34px; height: 34px; border-radius: 8px; --es: 24px; border: 1px solid var(--line); }
+  .pl.today { border-color: var(--blue); }
+  .ed { gap: 10px; }
+  .edhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .edhead input { flex: 1; min-width: 200px; font: inherit; font-size: 22px; padding: 8px 12px; border-radius: 14px; border: 3px solid var(--line); }
+  .items { display: flex; flex-direction: column; gap: 8px; }
+  .item { display: flex; align-items: center; gap: 8px; background: #fff; border: 4px solid var(--line); border-radius: 20px; padding: 8px 10px; flex-wrap: wrap; }
+  .item.brk { border-color: #96F2D7; } .item.fun { border-color: #FCC2D7; }
+  .item.past { opacity: .5; }
+  .item .no { width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 15px; flex: none; }
+  .item .pic { width: 70px; height: 70px; border-radius: 14px; --es: 46px; border: 2px solid var(--line); flex: none; cursor: pointer; }
+  .item input.n { flex: 1; min-width: 140px; font: inherit; font-size: 20px; padding: 8px 10px; border-radius: 12px; border: 2px solid var(--line); }
+  .stp { display: flex; align-items: center; gap: 4px; font-size: 15px; }
+  .stp button { width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--line); background: #fff; font-size: 18px; }
+  .stp b { min-width: 64px; text-align: center; }
+  .sm-seg { display: flex; gap: 4px; }
+  .sm-seg button { border: 2px solid var(--line); background: #fff; border-radius: 10px; padding: 6px 8px; font-size: 14px; }
+  .sm-seg button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .ibtn { width: 40px; height: 40px; border-radius: 10px; border: none; background: #F1F3F5; font-size: 17px; }
+  .ibtn.warn { background: #FFF0F0; color: #C92A2A; }
+  .lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .lib button { background: #fff; border: 3px solid var(--line); border-radius: 16px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 14px; }
+  .lib button .emo { font-size: 40px; }
+  .lib h4 { grid-column: 1 / -1; margin: 6px 0 0; color: var(--sub); }
+
+  body.calm *, body.calm *::before, body.calm *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01s !important; animation-iteration-count: 1 !important; } }
+  @media (orientation: portrait) {
+    .nowmain { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+    .nextbox { flex-direction: row; justify-content: center; flex-wrap: wrap; }
+    .nextbox .pic { width: 16vh; }
+    .curbox .row { flex-direction: column; }
+    .ft { grid-template-columns: 1fr; grid-template-rows: 1fr auto 1fr; }
+    .ft .arrow { transform: rotate(90deg); }
+    .cmp { grid-template-columns: 1fr; } .cmp .mid { transform: rotate(90deg); }
+  }
+  @media (max-width: 600px), (max-height: 520px) {
+    .topbar { min-height: 50px; padding: 4px 8px; gap: 6px; }
+    .topbar .appname, .topbar .url, .chip .lbl { display: none; }
+    .chip { font-size: 15px; padding: 2px 8px 2px 6px; border-width: 2px; } .chip .emo { font-size: 20px; }
+    .gear { width: 42px; height: 42px; font-size: 21px; }
+    main { padding: 0 8px 8px; }
+    .title { font-size: 21px; }
+    .big-btn { min-width: 0; min-height: 56px; padding: 0 18px; font-size: 19px; box-shadow: 0 5px 0 var(--go-d); }
+    .big-btn.blue { box-shadow: 0 5px 0 var(--blue-d); } .big-btn.white { box-shadow: 0 5px 0 var(--line); }
+    .mid-btn { min-height: 44px; padding: 0 12px; font-size: 14px; }
+    .menu { grid-template-columns: 1fr 1fr; gap: 10px; } .mcard { border-width: 4px; box-shadow: 0 5px 0 var(--c); border-radius: 22px; padding: 10px 6px; }
+    .donebtn { min-height: 60px; font-size: 22px; box-shadow: 0 5px 0 var(--go-d); }
+    .tool { width: 46px; height: 46px; font-size: 20px; }
+    .curbox { border-radius: 22px; border-width: 4px; } .nextbox { border-radius: 20px; }
+    .item .pic { width: 54px; height: 54px; }
+  }
+  @media (max-height: 520px) and (orientation: landscape) {
+    .strip { display: none; } .curbox .lab, .nextbox .lab { display: none; }
+    .curbox .pic { width: 26vh; --es: 70px; } .pie { width: 30vh; } .curbox .nm { font-size: 24px; } .left { font-size: 20px; } .endat { display: none; }
+    .nextbox .pic { width: 22vh; --es: 56px; } .nextbox .nm { font-size: 20px; } .thenmsg { font-size: 16px; }
+  }
+  @media (max-width: 600px) and (orientation: portrait) {
+    .curbox { overflow: hidden; } .curbox .row { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+    .curbox .pic { width: 30vw; --es: 64px; border-radius: 18px; } .pie { width: 34vw; } .curbox .nm { font-size: 24px; } .left { font-size: 20px; } .endat { font-size: 12px; }
+    .strip .scard { width: 62px; } .nextbox .pic { width: 14vh; --es: 50px; } .nextbox .nm { font-size: 18px; } .thenmsg { font-size: 15px; }
+    .tokens button { width: 52px; } .lastone { font-size: 22px; }
+  }
+
+  /* ---------- 先生用：設定 ---------- */
+  .modal { position: fixed; inset: 0; z-index: 50; background: rgba(17, 24, 39, .55); display: none; align-items: flex-start; justify-content: center; padding: 24px 12px; overflow-y: auto; -webkit-user-select: text; user-select: text; }
+  .modal.open { display: flex; }
+  .panel { width: min(100%, 900px); background: #fff; border-radius: 24px; padding: 22px clamp(14px, 4vw, 32px) 28px; font-weight: 400; font-size: 17px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .panel h2 { margin: 0; font-size: 25px; font-weight: 700; }
+  .panel h3 { margin: 28px 0 10px; font-size: 20px; font-weight: 700; padding-left: 10px; border-left: 6px solid var(--teal); }
+  .note { color: var(--sub); font-size: 15px; line-height: 1.6; margin: 6px 0; }
+  .panel label.row { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 0; border-bottom: 1px solid #F1F3F5; }
+  .panel label.row > span:first-child { flex: 1; }
+  .panel input[type=text], .panel select, .panel textarea { font: inherit; font-size: 17px; padding: 9px 12px; border: 2px solid #CED4DA; border-radius: 12px; background: #fff; }
+  .panel textarea { width: 100%; min-height: 120px; line-height: 1.6; }
+  .panel input[type=checkbox] { width: 28px; height: 28px; accent-color: var(--go); }
+  .panel input[type=range] { width: 200px; }
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 12px; padding: 11px 18px; font-size: 16px; font-weight: 700; background: #E9ECEF; color: var(--ink); cursor: pointer; }
+  .btn.primary { background: var(--blue); color: #fff; } .btn.ok { background: var(--go); color: #fff; } .btn.warn { background: #FFF0F0; color: #C92A2A; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg button { flex: 1; min-width: 86px; padding: 10px 8px; font-size: 15px; font-weight: 700; border-radius: 12px; border: 2px solid #CED4DA; background: #fff; }
+  .seg button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .srow { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #F1F3F5; }
+  @media (max-width: 600px) { .srow { grid-template-columns: 1fr; } }
+  .prow { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #E9ECEF; border-radius: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .mini-btn { min-width: 40px; height: 40px; border-radius: 10px; border: none; background: #F1F3F5; font-size: 16px; padding: 0 10px; }
+  .mini-btn.warn { background: #FFF0F0; color: #C92A2A; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: rgba(17,24,39,.9); color: #fff; padding: 14px 22px; border-radius: 14px; font-size: 18px; z-index: 60; display: none; max-width: 90vw; text-align: center; }
+  .toast.show { display: block; }
+
+/* ---------- 🖨️ プリントの 画面 ---------- */
+  .panel.wide { width: min(100%, 1180px); }
+  .seglabel { margin: 12px 0 6px; font-weight: 700; font-size: 15px; }
+  .prgrid { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 18px; margin-top: 10px; }
+  .prctl .seg button { min-width: 0; }
+  .prctl .seg.types { flex-direction: column; }
+  .prctl .seg.types button { text-align: left; padding: 10px 14px; }
+  .btn.blue { background: #1C7ED6; color: #fff; }
+  .prprev { background: #E9ECEF; border-radius: 16px; padding: 12px; max-height: 76vh; overflow-y: auto; }
+  .pwrap { margin: 0 auto 14px; box-shadow: 0 4px 14px rgba(0,0,0,.18); overflow: hidden; background: #fff; }
+  .pwrap .ppage { transform-origin: top left; }
+  @media (max-width: 820px) { .prgrid { grid-template-columns: 1fr; } }
+
+  /* ---------- プリント（A4） ---------- */
+  #printRoot { display: none; }
+  .ppage { flex: none; width: 210mm; height: 297mm; padding: 12mm 13mm 10mm; box-sizing: border-box; background: #fff; color: #111; position: relative; overflow: hidden; font-family: "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", sans-serif; font-weight: 700; display: flex; flex-direction: column; gap: 3mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ppage .phd { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: .8mm solid #111; padding-bottom: 2mm; gap: 4mm; }
+  .ppage .phd h1 { margin: 0; font-size: 7.5mm; }
+  .ppage .phd small { font-size: 3.8mm; font-weight: 400; display: block; }
+  .ppage .nm { font-size: 5mm; border-bottom: .4mm solid #111; min-width: 50mm; padding: 0 2mm 1mm; white-space: nowrap; }
+  .ppage .pf { margin-top: auto; text-align: right; font-size: 3mm; color: #888; }
+  .ppage .pe { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-weight: 400; }
+  .plist { display: flex; flex-direction: column; gap: 2.5mm; flex: 1; min-height: 0; }
+  .pli { display: flex; align-items: center; gap: 4mm; border: .5mm solid #333; border-radius: 3mm; padding: 1.5mm 3mm; flex: 1; max-height: 34mm; min-height: 0; }
+  .pli .ph { height: 100%; max-height: 30mm; aspect-ratio: 1; border-radius: 2mm; overflow: hidden; display: grid; place-items: center; border: .3mm solid #999; flex: none; }
+  .pli .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .pli .ph .pe { font-size: 16mm; }
+  .pli .t { flex: 1; font-size: 7mm; }
+  .pli .t small { display: block; font-size: 4mm; color: #555; }
+  .pli .ck { width: 11mm; height: 11mm; border: .6mm solid #111; border-radius: 2mm; flex: none; }
+  .pli.brk { background: #E6FCF5; } .pli.fun { background: #FFF0F6; }
+  .pcards { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 0; flex: 1; }
+  .pcard { border: .4mm dashed #888; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2mm; padding: 4mm; overflow: hidden; }
+  .pcard .ph { width: 60mm; height: 60mm; border-radius: 3mm; overflow: hidden; display: grid; place-items: center; border: .4mm solid #333; }
+  .pcard .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .pcard .ph .pe { font-size: 36mm; }
+  .pcard b { font-size: 8mm; }
+  .pft { flex: 1; display: grid; grid-template-columns: 1fr 14mm 1fr; align-items: center; gap: 2mm; }
+  .pft .b { border: .8mm solid #111; border-radius: 5mm; height: 120mm; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 5mm; gap: 4mm; }
+  .pft .b h2 { margin: 0; font-size: 10mm; }
+  .pft .b .ph { width: 70mm; height: 70mm; border: .4mm dashed #888; border-radius: 4mm; overflow: hidden; display: grid; place-items: center; }
+  .pft .b .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .pft .b .ph .pe { font-size: 40mm; }
+  .pft .b b { font-size: 8mm; }
+  .pft .ar { font-size: 14mm; text-align: center; }
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    html, body { height: auto !important; overflow: visible !important; display: block !important; background: #fff !important; padding: 0 !important; }
+    body > *:not(#printRoot) { display: none !important; }
+    #printRoot { display: block !important; }
+    #printRoot .ppage { page-break-after: always; break-after: page; }
+    #printRoot .ppage:last-child { page-break-after: auto; break-after: auto; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="chip home" id="homeBtn" type="button" aria-label="さいしょの ページに もどる" hidden><i></i><span class="emo">🏠</span><span class="lbl" id="homeLbl">さいしょ</span></button>
+  <button class="chip" id="whoChip" type="button" hidden></button>
+  <div class="brand"><div class="mieel-brand" aria-label="MieeL"><span class="orb-mini"></span><strong>MieeL</strong><span class="url">mieel-support-school.com</span></div><span class="appname">みとおし ボード</span></div>
+  <button class="chip" id="printBtn" type="button" aria-label="A4プリントを つくる" hidden>🖨️<span class="appname">プリント</span></button>
+  <button class="gear" id="gear" type="button" aria-label="先生用のせってい（ながおし）">⚙️</button>
+</header>
+<main id="view"></main>
+<div class="modal" id="settings" role="dialog" aria-modal="true" aria-label="先生用せってい"><div class="panel" id="settingsPanel"></div></div>
+<div class="modal" id="printModal" role="dialog" aria-modal="true" aria-label="プリント"><div class="panel wide" id="printPanel"></div></div>
+<div class="modal" id="libModal" role="dialog" aria-modal="true" aria-label="カードを えらぶ"><div class="panel" id="libPanel"></div></div>
+<input type="file" id="fileIn" hidden>
+<div class="toast" id="toast"></div>
+<div id="printRoot"></div>
+
+<script>
+function jaSay(t) {
+  // 読み上げで 単語の あたまの「は」「へ」が 助詞（わ・え）と 読まれないように カタカナに する（はこ→ハこ、へや→ヘや）
+  return String(t == null ? '' : t).replace(/なかまはずれ/g, '仲間外れ').replace(/(^|[\s、。！？!?・（(「『])([はへ])(?=[ぁ-ゖァ-ヺー一-鿿])/g, function (m, a, c) { return a + (c === 'は' ? 'ハ' : 'ヘ'); });
+}
+
+(function () {
+  'use strict';
+
+  /* ============================================================
+     カード（えもじ）の ライブラリ
+     ============================================================ */
+  const LIB = [
+    ['がっこう', [['🏫', 'とうこう'], ['🌅', 'あさの かい'], ['📚', 'こくご'], ['🔢', 'さんすう'], ['🎵', 'おんがく'], ['🎨', 'ずこう'], ['🏃', 'たいいく'], ['🌱', 'せいかつ'], ['💻', 'タブレット'], ['🧩', 'じりつ かつどう'], ['🛠️', 'さぎょう'], ['🍽️', 'きゅうしょく'], ['🪥', 'はみがき'], ['🧹', 'そうじ'], ['🛝', 'やすみじかん'], ['📖', 'よみきかせ'], ['🚻', 'トイレ'], ['👋', 'かえりの かい'], ['🚌', 'バス'], ['🏠', 'げこう']]],
+    ['いえ', [['🛏️', 'おきる'], ['👕', 'きがえ'], ['🍞', 'あさごはん'], ['🍛', 'ゆうごはん'], ['🛁', 'おふろ'], ['😴', 'ねる'], ['📺', 'テレビ'], ['🎮', 'ゲーム'], ['🧸', 'あそぶ'], ['🛒', 'かいもの'], ['🚶', 'さんぽ'], ['📝', 'しゅくだい'], ['🎒', 'じゅんび'], ['🧴', 'てあらい']]],
+    ['おでかけ・とくべつ', [['🏥', 'びょういん'], ['💇', 'とこや'], ['🚗', 'くるま'], ['🚃', 'でんしゃ'], ['🎂', 'たんじょうび'], ['🏊', 'プール'], ['🎡', 'おでかけ'], ['🙋', 'おきゃくさん']]],
+    ['やすむ・おたのしみ', [['☕', 'きゅうけい', 'brk'], ['🧘', 'クールダウン', 'brk'], ['💧', 'みずを のむ', 'brk'], ['🍪', 'おやつ', 'fun'], ['⭐', 'ごほうび', 'fun'], ['🎶', 'すきな きょく', 'fun'], ['📱', 'すきな どうが', 'fun']]]
+  ];
+  const KIND = { do: { n: 'ふつう', c: 'var(--blue)' }, brk: { n: 'きゅうけい', c: 'var(--brk)' }, fun: { n: 'おたのしみ', c: 'var(--fun)' } };
+  const MINS = [0, 1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 90];
+  const DEFAULT_PHRASES = ['あと 1かい', 'おわったら きゅうけい', 'つぎで おしまい', 'かたづけ しよう', 'ちょっと まってね', 'じゅんばんこ', 'あと すこし', 'よく できたね'];
+  const ICONS = ['🐰', '🐻', '🐼', '🐱', '🐶', '🦊', '🐸', '🐧', '🐯', '🐨', '🐵', '🦁', '🐹', '🐮', '🐷', '🐤'];
+
+  /* ============================================================
+     ほぞん（この たんまつの なかだけ。インターネットには おくりません）
+       ・よてい などの データ … localStorage
+       ・しゃしん … IndexedDB（Blob）
+     ============================================================ */
+  const LS = 'mitoshi.v1';
+  const $ = s => document.querySelector(s);
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  function load(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  const DEFAULT_SETTINGS = { voice: true, sound: true, volume: 0.8, rate: 0.95, calm: false, timer: 'pie', warn: 1, autoNext: false, endTime: true, notify: true, phrases: DEFAULT_PHRASES.join('\n') };
+  function newKid(name, icon) { return { id: 'k' + uid(), name, icon, plans: [], today: null }; }
+  function normalize(s) {
+    s = s && typeof s === 'object' ? s : {};
+    const o = { kids: Array.isArray(s.kids) && s.kids.length ? s.kids : [newKid('みんな', '🐰')], currentId: s.currentId || null, settings: Object.assign({}, DEFAULT_SETTINGS, s.settings || {}), ft: s.ft || null };
+    o.kids.forEach(k => { k.id = k.id || 'k' + uid(); k.name = k.name || 'なまえ'; k.icon = k.icon || '🐰'; k.plans = Array.isArray(k.plans) ? k.plans : []; });
+    if (!o.kids.some(k => k.id === o.currentId)) o.currentId = o.kids[0].id;
+    return o;
+  }
+  let store = normalize(load(LS));
+  const S = () => store.settings;
+  let saveT = 0;
+  function persist() { clearTimeout(saveT); if (!save(LS, store)) toast('保存できませんでした（容量を確認してください）'); }
+  function persistSoon() { clearTimeout(saveT); saveT = setTimeout(persist, 300); }
+  const kid = () => store.kids.find(k => k.id === store.currentId) || store.kids[0];
+
+  const DB = {
+    db: null,
+    open() { if (this.db) return Promise.resolve(this.db); return new Promise((res, rej) => { const r = indexedDB.open('mieel-mitoshi', 1); r.onupgradeneeded = () => r.result.createObjectStore('media', { keyPath: 'id' }); r.onsuccess = () => { this.db = r.result; res(this.db); }; r.onerror = () => rej(r.error); }); },
+    async get(id) { const d = await this.open(); return new Promise((res, rej) => { const q = d.transaction('media').objectStore('media').get(id); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+    async all() { const d = await this.open(); return new Promise((res, rej) => { const q = d.transaction('media').objectStore('media').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); },
+    async put(v) { const d = await this.open(); return new Promise((res, rej) => { const tx = d.transaction('media', 'readwrite'); tx.objectStore('media').put(v); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); },
+    async del(id) { const d = await this.open(); return new Promise((res, rej) => { const tx = d.transaction('media', 'readwrite'); tx.objectStore('media').delete(id); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); },
+    async clear() { const d = await this.open(); return new Promise((res, rej) => { const tx = d.transaction('media', 'readwrite'); tx.objectStore('media').clear(); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
+  };
+  const URLS = {};
+  async function mediaURL(id) { if (!id) return null; if (URLS[id]) return URLS[id]; try { const m = await DB.get(id); if (!m) return null; URLS[id] = URL.createObjectURL(m.blob); return URLS[id]; } catch (e) { return null; } }
+  function pickFile(accept, capture, multiple) {
+    return new Promise(res => {
+      const fi = $('#fileIn'); fi.value = ''; fi.accept = accept; fi.multiple = !!multiple;
+      if (capture) fi.setAttribute('capture', capture); else fi.removeAttribute('capture');
+      fi.onchange = () => res(fi.files && fi.files.length ? Array.from(fi.files) : null);
+      fi.click();
+    });
+  }
+  // しゃしんを ちいさく して ほぞん（いちど ちいさく すれば、データも かるい）
+  async function savePhoto(file) {
+    const url = URL.createObjectURL(file), im = new Image(); im.src = url;
+    await new Promise(r => { im.onload = r; im.onerror = r; });
+    const k = Math.min(1, 900 / Math.max(im.width || 1, im.height || 1)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round((im.width || 1) * k)); c.height = Math.max(1, Math.round((im.height || 1) * k));
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    const blob = await new Promise(r => c.toBlob(b => r(b), 'image/jpeg', 0.82));
+    const id = 'm' + uid(); await DB.put({ id, blob, at: Date.now() }); return id;
+  }
+  // ほかで つかって いない しゃしんを けす
+  async function cleanMedia() {
+    const used = new Set();
+    store.kids.forEach(k => { k.plans.forEach(p => p.items.forEach(i => i.media && used.add(i.media))); if (k.today) { k.today.items.forEach(i => i.media && used.add(i.media)); if (k.today.pending) k.today.pending.before.concat(k.today.pending.after).forEach(i => i.media && used.add(i.media)); } });
+    if (store.ft) ['a', 'b'].forEach(x => store.ft[x] && store.ft[x].media && used.add(store.ft[x].media));
+    try { const all = await DB.all(); for (const m of all) if (!used.has(m.id) && Date.now() - m.at > 60000) await DB.del(m.id); } catch (e) { /* 無視 */ }
+  }
+
+  /* ============================================================
+     小さな道具
+     ============================================================ */
+  function h(tag, props) {
+    const el = document.createElement(tag);
+    if (props) Object.keys(props).forEach(k => {
+      const v = props[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'html') el.innerHTML = v;
+      else if (k === 'value') el.value = v;
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (function add(list) { list.forEach(c => { if (c === null || c === undefined || c === false) return; if (Array.isArray(c)) add(c); else el.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c); }); })(Array.prototype.slice.call(arguments, 2));
+    return el;
+  }
+  const E = (e, cls) => h('span', { class: 'emo' + (cls ? ' ' + cls : '') }, e);
+  // しゃしん または えもじ の カード
+  function pic(it, cls) {
+    const w = h('div', { class: 'pic' + (cls ? ' ' + cls : '') }, E(it && it.emoji || '📷'));
+    if (it && it.media) mediaURL(it.media).then(u => { if (u) { w.innerHTML = ''; w.append(h('img', { src: u, alt: '' })); } });
+    return w;
+  }
+  let toastTimer = 0;
+  function toast(m, ms) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2600); }
+  let lockUntil = 0;
+  function tapOk(ms) { const n = Date.now(); if (n < lockUntil) return false; lockUntil = n + (ms || 350); return true; }
+  let gen = 0; const timers = new Set();
+  function after(ms, fn) { const g = gen; const id = setTimeout(() => { timers.delete(id); if (g === gen) fn(); }, ms); timers.add(id); return id; }
+  function every(ms, fn) { const g = gen; const id = setInterval(() => { if (g !== gen) { clearInterval(id); return; } fn(); }, ms); return id; }
+  function stopAll() { gen++; timers.forEach(clearTimeout); timers.clear(); stopSpeak(); document.querySelectorAll('.ov, .banner, .phr').forEach(x => x.remove()); }
+  function longPress(el, ms, fn) {
+    let t = 0;
+    el.addEventListener('pointerdown', e => { e.preventDefault(); el.classList.add('pressing'); t = setTimeout(() => { el.classList.remove('pressing'); fn(); }, ms); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => el.addEventListener(ev, () => { clearTimeout(t); el.classList.remove('pressing'); }));
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  // テストの ときは じかんを はやく できる（?test=1&speed=60）
+  const SPEED = (() => { const m = location.search.match(/speed=(\d+)/); return m && /test=1/.test(location.search) ? Number(m[1]) : 1; })();
+  const NOW = () => Date.now();
+
+  /* ---- 音・よみあげ ---- */
+  let ac = null;
+  function audio() { if (!S().sound) return null; try { if (!ac) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ac = new AC(); } if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } }
+  function tone(f, st, dur, type, vol) {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + st, o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime((vol || .2) * S().volume, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .05);
+  }
+  const sfx = {
+    tap() { tone(700, 0, .07, 'triangle', .13); },
+    done() { [784, 988, 1175].forEach((f, i) => tone(f, i * .1, .35, 'triangle', .2)); },
+    warn() { tone(880, 0, .5, 'sine', .18); tone(880, .6, .5, 'sine', .18); },
+    bell() { tone(1046, 0, 1.6, 'sine', .22); tone(1568, .02, 1.2, 'sine', .08); tone(1046, .9, 1.6, 'sine', .18); },
+    change() { [659, 523, 784].forEach((f, i) => tone(f, i * .18, .4, 'triangle', .2)); },
+    token(i) { tone([659, 784, 880, 988, 1047, 1175][i % 6], 0, .18, 'triangle', .2); }
+  };
+  const EMBED = /[?&]embed=1/.test(location.search);
+  const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  let jaVoice = null;
+  function loadVoice() { if (!canSpeak) return; const v = (speechSynthesis.getVoices() || []).filter(x => /^ja(-|_|$)/i.test(x.lang)); jaVoice = v.find(x => /Kyoko|O-ren|Otoya|Hattori|Nanami/i.test(x.name)) || v.find(x => x.localService) || v[0] || null; }
+  function speak(text) {
+    if (!canSpeak || !S().voice || !text || EMBED) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(jaSay(text)); u.lang = 'ja-JP'; u.rate = Number(S().rate) || 1; u.pitch = 1.05; if (jaVoice) u.voice = jaVoice; speechSynthesis.speak(u); } catch (e) { /* 無視 */ }
+  }
+  function stopSpeak() { if (canSpeak) { try { speechSynthesis.cancel(); } catch (e) { /* 無視 */ } } }
+  let wake = null;
+  async function keepAwake() { try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) { /* 無視 */ } }
+
+  const FX = (function () {
+    let cv = null, cx = null, parts = [], raf = 0, last = 0;
+    const COLS = ['#FF6B6B', '#FFA94D', '#FFD43B', '#69DB7C', '#4DABF7', '#9775FA', '#F783AC', '#38D9A9', '#FFFFFF'];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const calm = () => document.body.classList.contains('calm') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    function ensure() {
+      if (cv) return;
+      cv = document.createElement('canvas');
+      cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:44';
+      document.body.appendChild(cv);
+      cx = cv.getContext('2d');
+      const fit = () => { const d = Math.min(window.devicePixelRatio || 1, 2); cv.width = innerWidth * d; cv.height = innerHeight * d; cx.setTransform(d, 0, 0, d, 0, 0); };
+      fit(); window.addEventListener('resize', fit);
+    }
+    function loop(t) {
+      const dt = Math.min(40, t - (last || t)); last = t;
+      cx.clearRect(0, 0, innerWidth, innerHeight);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.age += dt;
+        if (p.age >= p.life || p.y > innerHeight + 60) { if (p.onEnd) p.onEnd(p); parts.splice(i, 1); continue; }
+        p.vy += (p.g || 0) * dt; p.vx *= p.drag || 1; p.vy *= p.drag || 1;
+        p.x += p.vx * dt; p.y += p.vy * dt; p.rot += (p.vr || 0) * dt;
+        const a = p.fade ? Math.max(0, 1 - p.age / p.life) : 1;
+        cx.globalAlpha = a;
+        if (p.k === 'paper') {   // ひらひら まう かみ
+          const w = Math.cos(p.age / 120 + p.ph);
+          cx.save(); cx.translate(p.x + Math.sin(p.age / 300 + p.ph) * 6, p.y); cx.rotate(p.rot); cx.scale(1, w);
+          cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * 0.66); cx.restore();
+        } else if (p.k === 'ribbon') {  // くるくる リボン
+          cx.strokeStyle = p.c; cx.lineWidth = 3; cx.beginPath();
+          for (let j = 0; j < 6; j++) { const yy = p.y - j * 5, xx = p.x + Math.sin(p.age / 90 + j * .9 + p.ph) * 6; j ? cx.lineTo(xx, yy) : cx.moveTo(xx, yy); }
+          cx.stroke();
+        } else if (p.k === 'spark') {   // はなびの ひかり
+          cx.fillStyle = p.c; cx.beginPath(); cx.arc(p.x, p.y, p.s * (1 - p.age / p.life * .6), 0, 7); cx.fill();
+        } else if (p.k === 'rocket') {
+          cx.fillStyle = '#FFF3BF'; cx.beginPath(); cx.arc(p.x, p.y, 4, 0, 7); cx.fill();
+          cx.globalAlpha = .5; cx.fillStyle = '#FFD43B'; cx.beginPath(); cx.arc(p.x, p.y + 10, 3, 0, 7); cx.fill();
+        } else if (p.k === 'emoji') {
+          cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.font = p.s + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+          cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(p.t, 0, 0); cx.restore();
+        } else if (p.k === 'ring') {
+          cx.strokeStyle = p.c; cx.lineWidth = 6 * (1 - p.age / p.life); cx.beginPath(); cx.arc(p.x, p.y, p.s + p.age * 0.35, 0, 7); cx.stroke();
+        }
+      }
+      cx.globalAlpha = 1;
+      raf = parts.length ? requestAnimationFrame(loop) : 0;
+      if (!raf) cx.clearRect(0, 0, innerWidth, innerHeight);
+    }
+    function go() { if (!raf) { last = 0; raf = requestAnimationFrame(loop); } }
+    const P = o => { parts.push(Object.assign({ age: 0, rot: 0, ph: Math.random() * 6 }, o)); };
+    function burst(x, y, n, speed, kinds) {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, v = rnd(speed * .4, speed);
+        const k = kinds[i % kinds.length];
+        if (k === 'paper') P({ k: 'paper', x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - .2, g: .0009, drag: .985, vr: rnd(-.01, .01), s: rnd(8, 14), c: COLS[i % COLS.length], life: 2600 });
+        else P({ k: 'spark', x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: .0003, drag: .975, s: rnd(2.5, 4.5), c: COLS[i % 8], life: 900, fade: true });
+      }
+      go();
+    }
+    /* ---- 音 ---- */
+    let ac = null;
+    function A() { try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } }
+    function noise(dur, vol, f0, f1, delay) {
+      const a = A(); if (!a || !FX.sound()) return;
+      const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.5);
+      const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime + (delay || 0);
+      s.buffer = b; fl.type = 'bandpass'; fl.Q.value = 0.8; fl.frequency.setValueAtTime(f0, t); if (f1) fl.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.value = vol * FX.volume(); s.connect(fl); fl.connect(g); g.connect(a.destination); s.start(t);
+    }
+    function popSound(delay) { noise(0.25, 1.4, 2200, 500, delay); }
+    function boomSound(delay) { noise(0.9, 0.9, 700, 90, delay); }
+    function whistle(delay) {
+      const a = A(); if (!a || !FX.sound()) return;
+      const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + delay;
+      o.type = 'sine'; o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1800, t + .6);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.06 * FX.volume(), t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + .65);
+      o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + .7);
+    }
+    function clap(delay, dur) { for (let i = 0; i < dur * 14; i++) noise(0.06, rnd(.3, .7), rnd(900, 2200), 0, delay + i / 14 + rnd(0, .05)); }
+
+    // クラッカー（がめんの したの すみから）
+    function cracker(side, delay) {
+      setTimeout(() => {
+        const x = side < 0 ? 40 : innerWidth - 40, y = innerHeight - 40, dir = side < 0 ? 1 : -1;
+        P({ k: 'emoji', t: '🎉', x: x, y: y, s: 90, rot: side < 0 ? 0 : -1.4, life: 1100, fade: true });
+        for (let i = 0; i < 90; i++) {
+          const a = -Math.PI / 2 + dir * rnd(.15, .85), v = rnd(.7, 1.45);
+          P({ k: i % 5 ? 'paper' : 'ribbon', x: x, y: y - 30, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: .0011, drag: .986, vr: rnd(-.012, .012), s: rnd(9, 15), c: COLS[i % COLS.length], life: 3600 });
+        }
+        popSound(0); go();
+      }, delay);
+    }
+    function firework(x, y, delay) {
+      setTimeout(() => {
+        P({ k: 'rocket', x: x, y: innerHeight, vx: 0, vy: -(innerHeight - y) / 600, life: 600, onEnd: p => { burst(p.x, p.y, 70, .45, ['spark', 'spark', 'spark', 'paper']); P({ k: 'ring', x: p.x, y: p.y, s: 10, c: '#FFE066', life: 500, fade: true }); boomSound(0); } });
+        whistle(0); go();
+      }, delay);
+    }
+    return {
+      sound: () => true, volume: () => 1,
+      small(el, opt) {
+        if (calm() || !el) return;
+        ensure();
+        const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+        const v = (opt && opt.variant) != null ? opt.variant : Math.floor(Math.random() * 5);
+        if (v === 0) burst(x, y, 40, .6, ['paper']);
+        else if (v === 1) { for (let i = 0; i < 10; i++) { const a = i / 10 * 6.28; P({ k: 'emoji', t: '⭐', x: x, y: y, vx: Math.cos(a) * .35, vy: Math.sin(a) * .35, g: .0004, s: 34, vr: .01, life: 900, fade: true }); } go(); }
+        else if (v === 2) { for (let i = 0; i < 8; i++) P({ k: 'emoji', t: pick2(['💖', '💗', '💕']), x: x + rnd(-40, 40), y: y, vx: rnd(-.08, .08), vy: rnd(-.45, -.25), s: rnd(28, 44), life: 1300, fade: true }); go(); }
+        else if (v === 3) { P({ k: 'ring', x: x, y: y, s: r.width * .3, c: '#FFD43B', life: 600, fade: true }); P({ k: 'ring', x: x, y: y, s: r.width * .2, c: '#69DB7C', life: 700, fade: true }); burst(x, y, 30, .5, ['spark']); }
+        else { for (let i = 0; i < 12; i++) P({ k: 'emoji', t: pick2(['✨', '🌟', '🎵', '🍀']), x: x, y: y, vx: rnd(-.5, .5), vy: rnd(-.7, -.3), g: .0012, s: rnd(26, 40), vr: rnd(-.01, .01), life: 1200, fade: true }); go(); }
+      },
+      big() {
+        if (calm()) return;
+        ensure();
+        cracker(-1, 0); cracker(1, 180);
+        const W = innerWidth, H = innerHeight;
+        firework(W * .25, H * .25, 700); firework(W * .72, H * .2, 1100); firework(W * .5, H * .32, 1500); firework(W * .35, H * .18, 1900);
+        setTimeout(() => { for (let i = 0; i < 120; i++) P({ k: i % 6 ? 'paper' : 'ribbon', x: rnd(0, W), y: rnd(-H * .6, -10), vx: rnd(-.05, .05), vy: rnd(.08, .22), g: .00004, vr: rnd(-.01, .01), s: rnd(9, 15), c: COLS[i % COLS.length], life: 6000 }); go(); }, 1200);
+        clap(0.4, 2.2);
+      }
+    };
+    function pick2(a) { return a[Math.floor(Math.random() * a.length)]; }
+  })();
+  FX.sound = () => S().sound; FX.volume = () => Number(S().volume) || 0.8;
+
+  /* ============================================================
+     きょうの よてい
+       kid.today = { date, plan, items: [...], idx, start, paused, pauseAt, used: {id: かい}, pending: { before, after, at }, changed: {id:1} }
+       item = { id, name, emoji, media, min（0＝タイマー なし）, count（0＝かいすう なし）, kind（do/brk/fun） }
+     ============================================================ */
+  const copyItems = items => items.map(i => Object.assign({}, i));
+  function startToday(k, plan) {
+    k.today = { date: today(), plan: plan ? plan.name : '', items: copyItems(plan ? plan.items : []), idx: 0, start: NOW(), paused: false, pauseAt: 0, used: {}, pending: null, changed: {} };
+    persist();
+  }
+  function T() { const k = kid(); return k.today && k.today.date === today() ? k.today : null; }
+  function curItem() { const t = T(); return t && t.items[t.idx]; }
+  function elapsed() { const t = T(); if (!t) return 0; const end = t.paused ? t.pauseAt : NOW(); return Math.max(0, (end - t.start) * SPEED); }
+  function remaining() { const it = curItem(); return it && it.min ? Math.max(0, it.min * 60000 - elapsed()) : 0; }
+  const fmtLeft = ms => { const s = Math.ceil(ms / 1000); if (s >= 60) return { n: Math.ceil(s / 60), u: 'ふん' }; return { n: s, u: 'びょう' }; };
+  const clockOf = ms => { const d = new Date(ms); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  const minYomi = n => (n === 1 || n === 3 || n === 4 || n === 6 || n === 8 || n === 10) ? n + 'ぷん' : n + 'ふん';
+  // かわった ところを くらべる（いまの つぎから）
+  function diff(before, after) {
+    const bi = before.map(i => i.id), ai = after.map(i => i.id);
+    const rm = before.filter(i => ai.indexOf(i.id) < 0).map(i => i.id);
+    const add = after.filter(i => bi.indexOf(i.id) < 0).map(i => i.id);
+    const keepB = bi.filter(id => ai.indexOf(id) >= 0), keepA = ai.filter(id => bi.indexOf(id) >= 0);
+    const mv = keepA.filter((id, n) => keepB[n] !== id);
+    const tm = after.filter(i => { const o = before.find(b => b.id === i.id); return o && (o.min !== i.min || o.count !== i.count || o.name !== i.name); }).map(i => i.id);
+    return { rm, add, mv, tm, any: rm.length + add.length + mv.length + tm.length > 0 };
+  }
+
+  /* ============================================================
+     画面
+     ============================================================ */
+  let screen = 'home';
+  const CHILD = ['now', 'ft'];
+  function setView(cls, children) { stopAll(); const v = $('#view'); v.innerHTML = ''; v.appendChild(h('section', { class: 'screen ' + cls }, children)); chips(); }
+  function chips() {
+    const k = kid(), c = $('#whoChip'), hb = $('#homeBtn');
+    $('#printBtn').hidden = ['home', 'teacher'].indexOf(screen) < 0;
+    hb.hidden = screen === 'home' || screen === 'who';
+    $('#homeLbl').textContent = CHILD.indexOf(screen) >= 0 ? 'ながおし' : 'さいしょ';
+    c.hidden = store.kids.length < 2 || CHILD.indexOf(screen) >= 0 || screen === 'who';
+    c.innerHTML = ''; c.append(E(k.icon), k.name);
+  }
+  function renderWho() {
+    screen = 'who';
+    setView('who', [h('h1', { class: 'title' }, 'だれの よてい？'), h('div', { class: 'menu' }, store.kids.map(k => h('button', { type: 'button', class: 'mcard', style: '--c:#0CA678', onclick: () => { if (!tapOk()) return; sfx.tap(); store.currentId = k.id; persist(); renderHome(); } }, E(k.icon), h('b', null, k.name))))]);
+  }
+  function renderHome() {
+    screen = 'home';
+    const k = kid(), t = T();
+    const tcard = h('button', { type: 'button', class: 'mcard', style: '--c:#7048E8' }, h('i', { class: 'lp' }), E('✏️'), h('b', null, 'よていを つくる・かえる'), h('small', null, 'せんせい（1びょう ながおし）'));
+    longPress(tcard, 1000, () => { sfx.tap(); renderTeacher(); });
+    tcard.addEventListener('click', () => toast('せんせいは 1びょう ながおし して ください'));
+    setView('home', [
+      h('h1', { class: 'title' }, '🗓️ みとおし ボード', h('small', null, 'いつ おわる？ つぎは なに？')),
+      h('div', { class: 'menu' },
+        h('button', { type: 'button', class: 'mcard', style: '--c:#1C7ED6', onclick: () => { if (!tapOk()) return; sfx.tap(); renderNow(); } }, E('🗓️'), h('b', null, 'きょうの よてい'), h('small', null, t ? (t.plan || 'きょう') + '・' + t.items.length + 'こ' : 'まだ ありません')),
+        h('button', { type: 'button', class: 'mcard', style: '--c:#F76707', onclick: () => { if (!tapOk()) return; sfx.tap(); renderFT(); } }, E('➡️'), h('b', null, 'まず → つぎ'), h('small', null, 'ふたつだけで きりかえ')),
+        tcard),
+      h('div', { class: 'privacy' }, '🔒 しゃしんと よていは この たんまつの なかだけに ほぞん します。インターネットには おくりません。')
+    ]);
+  }
+
+  /* ---------- こども：いま と つぎ ---------- */
+  let warned = false, endShown = false;
+  function renderNow() {
+    screen = 'now';
+    const k = kid(), t = T();
+    if (!t || !t.items.length) {
+      setView('now', [h('div', { class: 'alldone' }, E('🗓️', 'big'), h('h1', { class: 'title' }, 'きょうの よていは まだ ないよ', h('small', null, 'せんせいに つくって もらおう')),
+        h('div', { class: 'actions' }, h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (tapOk()) renderHome(); } }, '◀ もどる')))]);
+      return;
+    }
+    keepAwake();
+    if (t.idx >= t.items.length) { if (t.pending) { t.pending = null; persist(); } renderAllDone(); return; }
+    const it = t.items[t.idx], nx = t.items[t.idx + 1];
+    warned = remaining() <= S().warn * 60000 && it.min > 0 && S().warn > 0; endShown = false;
+    // うえ：きょう ぜんぶ
+    const strip = h('div', { class: 'strip' }, t.items.map((x, i) => h('div', { class: 'scard' + (i < t.idx ? ' done' : i === t.idx ? ' cur' : '') + (x.kind !== 'do' ? ' ' + x.kind : '') + (t.changed[x.id] ? ' chg' : '') }, pic(x), x.name)));
+    // いま
+    const tbox = h('div', { class: 'tbox' });
+    const cur = h('div', { class: 'curbox ' + (it.kind !== 'do' ? it.kind : '') },
+      h('div', { class: 'lab' }, it.kind === 'brk' ? '☕ いまは きゅうけい' : it.kind === 'fun' ? '⭐ いまは おたのしみ' : '▶ いまは'),
+      h('div', { class: 'row' }, pic(it), h('div', { style: 'display:flex;flex-direction:column;align-items:center;gap:10px' }, h('div', { class: 'nm' }, it.name), tbox)));
+    // つぎ
+    const thenTxt = !nx ? 'これで きょうは おしまい！' : nx.kind === 'brk' ? 'おわったら きゅうけい！' : nx.kind === 'fun' ? 'おわったら おたのしみ！ ⭐' : 'おわったら ' + nx.name;
+    const nextb = h('div', { class: 'nextbox' }, h('div', { class: 'lab' }, 'つぎは'), nx ? pic(nx) : E('🏁'), h('div', { class: 'nm' }, nx ? nx.name : 'おしまい'), h('div', { class: 'thenmsg ' + (nx ? nx.kind : '') }, thenTxt));
+    const warnbar = h('div', { class: 'warnbar', hidden: true }, '⏰ もうすぐ おしまい');
+    const pauseB = it.min ? h('button', { type: 'button', class: 'tool', 'aria-label': 'とめる・すすめる', onclick: () => togglePause(pauseB) }, t.paused ? '▶' : '⏸') : null;
+    const phrB = h('button', { type: 'button', class: 'tool', 'aria-label': 'ことば', onclick: () => togglePhr() }, '💬');
+    const doneB = h('button', { type: 'button', class: 'donebtn', onclick: () => { if (tapOk(800)) finishItem(); } }, it.count ? '✓ ぜんぶ おわった' : '✓ おわった');
+    setView('now', [strip, warnbar, h('div', { class: 'nowmain' }, cur, nextb), h('div', { class: 'nowfoot' }, pauseB || h('span'), doneB, phrB)]);
+    const curCard = strip.children[t.idx]; if (curCard) setTimeout(() => curCard.scrollIntoView({ inline: 'center', block: 'nearest' }), 50);
+    // タイマー・かいすう
+    if (it.count) drawTokens(tbox, it);
+    if (it.min) { drawTimer(tbox, it); every(250, () => tick(tbox, it, warnbar)); tick(tbox, it, warnbar); }
+    speak('いまは ' + it.name + '。' + (it.min ? minYomi(it.min) + '。' : '') + (it.count ? 'あと ' + (it.count - (t.used[it.id] || 0)) + 'かい。' : '') + thenTxt);
+    if (t.pending) showChange();
+  }
+  function timerColor(f) { return f > .5 ? '#40C057' : f > .2 ? '#FAB005' : '#FA5252'; }
+  function drawTimer(box, it) {
+    box.innerHTML = '';
+    const st = S().timer;
+    if (st === 'pie') box.append(h('div', { html: '<svg class="pie" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#F1F3F5" stroke="#DEE2E6" stroke-width="3"/><path class="sec" fill="#40C057"/>' + Array.from({ length: 12 }, (_, i) => { const a = i * 30 * Math.PI / 180; return '<line x1="' + (50 + 41 * Math.sin(a)) + '" y1="' + (50 - 41 * Math.cos(a)) + '" x2="' + (50 + 46 * Math.sin(a)) + '" y2="' + (50 - 46 * Math.cos(a)) + '" stroke="#ADB5BD" stroke-width="1.5"/>'; }).join('') + '<circle cx="50" cy="50" r="4" fill="#495057"/></svg>' }).firstChild);
+    else if (st === 'bar') box.append(h('div', { class: 'barv' }, h('i')));
+    else { const n = Math.min(10, Math.max(3, it.min)); box.append(h('div', { class: 'blocks' }, Array.from({ length: n }, () => h('i')))); }
+    box.append(h('div', { class: 'left' }), S().endTime ? h('div', { class: 'endat' }) : null);
+  }
+  function tick(box, it, warnbar) {
+    const t = T(); if (!t) return;
+    const total = it.min * 60000, rem = remaining(), f = total ? rem / total : 0, col = timerColor(f);
+    const sec = box.querySelector('.sec');
+    if (sec) { if (f >= .999) sec.setAttribute('d', 'M50 50 m-44 0 a44 44 0 1 0 88 0 a44 44 0 1 0 -88 0'); else { const a = f * 2 * Math.PI, x = 50 + 44 * Math.sin(a), y = 50 - 44 * Math.cos(a); sec.setAttribute('d', f <= 0 ? '' : 'M50 50 L50 6 A44 44 0 ' + (f > .5 ? 1 : 0) + ' 1 ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' Z'); } sec.setAttribute('fill', col); }
+    const bar = box.querySelector('.barv i'); if (bar) { bar.style.width = (f * 100) + '%'; bar.style.backgroundColor = col; }
+    const bl = box.querySelectorAll('.blocks i'); if (bl.length) { const keep = Math.ceil(f * bl.length); bl.forEach((b, i) => { b.classList.toggle('gone', i >= keep); b.style.setProperty('--bc', col); }); }
+    const L = fmtLeft(rem), left = box.querySelector('.left');
+    if (left) left.innerHTML = rem > 0 ? 'あと <b>' + L.n + '</b> ' + L.u : '<b>おしまい！</b>';
+    const ea = box.querySelector('.endat'); if (ea) ea.textContent = rem > 0 && !t.paused && SPEED === 1 ? '🕒 ' + clockOf(NOW() + rem) + ' に おわり' : t.paused ? '⏸ とまって います' : '';
+    // もうすぐ・おしまい
+    if (S().warn > 0 && !warned && !t.pending && rem > 0 && rem <= S().warn * 60000 && total > S().warn * 60000) { warned = true; sfx.warn(); speak('あと ' + minYomi(S().warn) + '。もうすぐ おしまい'); }
+    if (warnbar) warnbar.hidden = !(rem > 0 && S().warn > 0 && rem <= S().warn * 60000);
+    if (rem <= 0 && !endShown && !t.pending) { endShown = true; timeUp(it); }
+  }
+  function timeUp(it) {
+    const t = T(), nx = t.items[t.idx + 1];
+    sfx.bell();
+    speak(it.name + 'は おしまい。' + (nx ? 'つぎは ' + nx.name : ''));
+    if (S().autoNext) { after(2500, finishItem); return; }
+    const ov = h('div', { class: 'ov' }, h('h1', null, '🔔 おしまいの じかん'),
+      h('div', { class: 'tr' }, h('div', { class: 'card' }, pic(it), h('b', null, it.name)), h('div', { class: 'arrow' }, '➡'), nx ? h('div', { class: 'card new' }, pic(nx), h('b', null, 'つぎは ' + nx.name)) : h('div', { class: 'card' }, E('🏁'), h('b', null, 'おしまい'))),
+      h('div', { class: 'actions' }, h('button', { type: 'button', class: 'big-btn go', onclick: () => { if (tapOk(800)) { ov.remove(); finishItem(); } } }, '✓ おわった'), h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (tapOk()) { ov.remove(); addMin(1); } } }, '＋1ぷん')));
+    document.body.append(ov);
+  }
+  function addMin(n) { const t = T(), it = curItem(); if (!it) return; it.min += n; persist(); renderNow(); toast('＋' + n + 'ぷん'); }
+  function togglePause(btn) {
+    const t = T(); if (!t) return;
+    if (t.paused) { t.start += NOW() - t.pauseAt; t.paused = false; btn.textContent = '⏸'; }
+    else { t.paused = true; t.pauseAt = NOW(); btn.textContent = '▶'; }
+    persist(); sfx.tap();
+  }
+  function drawTokens(box, it) {
+    const t = T(), used = t.used[it.id] || 0, left = it.count - used;
+    box.innerHTML = '';
+    box.append(h('div', { class: 'tokens' }, Array.from({ length: it.count }, (_, i) => h('button', { type: 'button', class: (i < used ? 'used' : '') + (i === used ? ' next' : ''), onclick: () => { if (!tapOk(300)) return; useToken(box, it, i); } }, String(i + 1)))),
+      left === 1 ? h('div', { class: 'lastone' }, '❗ あと 1かい！') : h('div', { class: 'left' }, left > 0 ? h('span', null, 'あと ', h('b', null, String(left)), ' かい') : h('b', null, 'おしまい！')));
+  }
+  function useToken(box, it, i) {
+    const t = T(), used = t.used[it.id] || 0;
+    if (i < used) { t.used[it.id] = i; } else t.used[it.id] = Math.min(it.count, used + 1);
+    persist();
+    const left = it.count - t.used[it.id];
+    sfx.token(t.used[it.id]);
+    speak(left === 1 ? 'あと 1かい！' : left > 0 ? 'あと ' + left + 'かい' : 'おしまい！');
+    drawTokens(box, it);
+    if (left === 0) after(900, () => { if (curItem() === it) { if (S().autoNext) finishItem(); else timeUpCount(it); } });
+  }
+  function timeUpCount(it) { if (!it.min) timeUp(it); }
+  function finishItem() {
+    const t = T(); if (!t) return;
+    const it = t.items[t.idx], nx = t.items[t.idx + 1];
+    t.idx++; t.start = NOW(); t.paused = false; persist();
+    sfx.done(); FX.small(document.querySelector('.donebtn') || document.body);
+    if (!nx) { renderAllDone(); return; }
+    // つぎへの きりかえ（まえ → つぎ）
+    stopAll();
+    const ov = h('div', { class: 'ov' }, h('h1', null, '👍 ' + it.name + ' おしまい'),
+      h('div', { class: 'tr' }, h('div', { class: 'card' }, pic(it), h('b', null, it.name)), h('div', { class: 'arrow' }, '➡'), h('div', { class: 'card new' }, pic(nx), h('b', null, 'つぎは ' + nx.name))),
+      nx.min ? h('div', { class: 'sub' }, '⏱️ ' + minYomi(nx.min)) : nx.count ? h('div', { class: 'sub' }, '🔁 ' + nx.count + 'かい') : null);
+    document.body.append(ov);
+    speak(it.name + ' おしまい。つぎは ' + nx.name);
+    setTimeout(() => { ov.remove(); if (screen === 'now') renderNow(); }, 2800);
+  }
+  function renderAllDone() {
+    const t = T();
+    setView('now', [h('div', { class: 'strip' }, t.items.map(x => h('div', { class: 'scard done' }, pic(x), x.name))),
+      h('div', { class: 'alldone' }, h('div', { class: 'emo', style: 'font-size:clamp(80px,16vh,150px)' }, '🎉'), h('h1', { class: 'title' }, 'きょうの よていは ぜんぶ おしまい！', h('small', null, 'よく がんばったね')),
+        h('div', { class: 'actions' }, h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (tapOk()) renderHome(); } }, '🏠 おわる')))]);
+    FX.big(); speak('きょうの よていは ぜんぶ おしまい！ よく がんばったね');
+  }
+  // ことば（あと1かい・おわったら きゅうけい など）
+  function togglePhr() {
+    const ex = document.querySelector('.phr'); if (ex) { ex.remove(); return; }
+    const list = String(S().phrases || '').split(/\n/).map(s => s.trim()).filter(Boolean);
+    const p = h('div', { class: 'phr' }, list.map(s => h('button', { type: 'button', onclick: () => { p.remove(); showBanner(s); } }, '💬 ' + s)));
+    document.body.append(p);
+  }
+  function showBanner(s) {
+    document.querySelectorAll('.banner').forEach(x => x.remove());
+    const b = h('div', { class: 'banner', onclick: () => b.remove() }, s);
+    document.body.append(b); sfx.warn(); speak(s);
+    setTimeout(() => b.remove(), 5000);
+  }
+  // よていが かわった ことを しらせる（まえ → あと）
+  function showChange() {
+    $('#toast').classList.remove('show');
+    const t = T(), pd = t.pending;
+    const d = diff(pd.before, pd.after);
+    const row = (i, cls, tag) => h('div', { class: 'it ' + (cls || '') }, pic(i), h('span', null, i.name), i.min ? h('small', null, minYomi(i.min)) : null, tag ? h('small', null, tag) : null);
+    // 1つが なくなって 1つが ふえた ときは「○○ → △△」を おおきく
+    let head = null;
+    if (d.rm.length === 1 && d.add.length === 1) {
+      const o = pd.before.find(i => i.id === d.rm[0]), n = pd.after.find(i => i.id === d.add[0]);
+      head = h('div', { class: 'tr' }, h('div', { class: 'card old' }, pic(o), h('b', null, o.name + ' は なし')), h('div', { class: 'arrow' }, '➡'), h('div', { class: 'card new' }, pic(n), h('b', null, 'かわりに ' + n.name)));
+    }
+    const say = d.rm.length === 1 && d.add.length === 1 ? pd.before.find(i => i.id === d.rm[0]).name + 'は なしに なりました。かわりに ' + pd.after.find(i => i.id === d.add[0]).name + 'を します'
+      : 'よていが かわります。' + (d.rm.length ? d.rm.map(id => pd.before.find(i => i.id === id).name).join('と') + 'は なし。' : '') + (d.add.length ? d.add.map(id => pd.after.find(i => i.id === id).name).join('と') + 'が ふえます。' : '') + (d.mv.length ? 'じゅんばんが かわります。' : '') + (d.tm.length ? 'じかんが かわります。' : '');
+    const ov = h('div', { class: 'ov' }, h('h1', null, '🔄 よていが かわります'), head,
+      h('div', { class: 'cmp' },
+        h('div', { class: 'col' }, h('h3', null, 'まえの よてい'), pd.before.map(i => row(i, d.rm.indexOf(i.id) >= 0 ? 'rm' : '', d.rm.indexOf(i.id) >= 0 ? 'なし' : ''))),
+        h('div', { class: 'mid' }, '➡'),
+        h('div', { class: 'col' }, h('h3', null, 'あたらしい よてい'), pd.after.map(i => row(i, d.add.indexOf(i.id) >= 0 ? 'add' : d.mv.indexOf(i.id) >= 0 || d.tm.indexOf(i.id) >= 0 ? 'mv' : '', d.add.indexOf(i.id) >= 0 ? '🆕 あたらしい' : d.mv.indexOf(i.id) >= 0 ? '↕ じゅんばん' : d.tm.indexOf(i.id) >= 0 ? '⏱ じかん' : '')))),
+      h('div', { class: 'actions' }, h('button', { type: 'button', class: 'big-btn go', onclick: () => { if (!tapOk()) return; t.pending = null; persist(); ov.remove(); renderNow(); } }, '✓ わかった')));
+    document.body.append(ov);
+    sfx.change(); speak(say);
+  }
+
+  /* ---------- まず → つぎ ---------- */
+  function renderFT() {
+    screen = 'ft';
+    const tb = h('div', { class: 'tbox ftt' });
+    const ft = store.ft || (store.ft = { a: null, b: null, min: 0, start: 0, done: false });
+    const box = (which, label, c) => {
+      const it = ft[which];
+      const b = h('div', { class: 'ftbox' + (which === 'b' && !ft.done ? ' dim' : which === 'a' && ft.done ? ' dim' : ''), style: '--c:' + c }, h('h2', null, label), it ? pic(it) : h('div', { class: 'pic' }, E('➕')), h('div', { class: 'nm' }, it ? it.name : 'えらぼう'), which === 'a' && !ft.done ? tb : null);
+      b.querySelector('.pic').addEventListener('click', () => { openLib(r => { ft[which] = r; ft.done = false; ft.start = NOW(); persist(); renderFT(); }, true); });
+      return b;
+    };
+    setView('ft', [
+      h('div', { class: 'ft' }, box('a', 'まず', '#1C7ED6'), h('div', { class: 'arrow' }, '➡'), box('b', 'つぎ', '#F76707')),
+      h('div', { class: 'actions' },
+        ft.a && !ft.done ? h('div', { class: 'stp' }, '⏱️', h('button', { type: 'button', onclick: () => { ft.min = MINS[Math.max(0, MINS.indexOf(ft.min) - 1)]; ft.start = NOW(); persist(); renderFT(); } }, '−'), h('b', null, ft.min ? minYomi(ft.min) : 'タイマー なし'), h('button', { type: 'button', onclick: () => { ft.min = MINS[Math.min(MINS.length - 1, MINS.indexOf(ft.min) + 1)]; ft.start = NOW(); persist(); renderFT(); } }, '＋')) : null,
+        ft.a && ft.b && !ft.done ? h('button', { type: 'button', class: 'donebtn', onclick: () => { if (!tapOk(800)) return; ft.done = true; persist(); sfx.done(); speak(ft.a.name + ' おしまい。つぎは ' + ft.b.name); renderFT(); } }, '✓ ' + ft.a.name + ' おわった') : null,
+        ft.done ? h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (!tapOk()) return; ft.a = ft.b; ft.b = null; ft.done = false; ft.start = NOW(); ft.min = 0; persist(); renderFT(); } }, '🔁 つぎの 「まず」へ') : null)
+    ]);
+    if (ft.a && ft.min && !ft.done) {
+      const it = { min: ft.min };
+      const t0 = ft.start;
+      const box2 = tb; S().timer; drawTimer(box2, it);
+      let rang = false;
+      const f = () => { const rem = Math.max(0, ft.min * 60000 - (NOW() - t0) * SPEED), fr = rem / (ft.min * 60000), col = timerColor(fr); const sec = box2.querySelector('.sec'); if (sec) { const a = fr * 2 * Math.PI; sec.setAttribute('d', fr <= 0 ? '' : fr >= .999 ? 'M50 50 m-44 0 a44 44 0 1 0 88 0 a44 44 0 1 0 -88 0' : 'M50 50 L50 6 A44 44 0 ' + (fr > .5 ? 1 : 0) + ' 1 ' + (50 + 44 * Math.sin(a)).toFixed(2) + ' ' + (50 - 44 * Math.cos(a)).toFixed(2) + ' Z'); sec.setAttribute('fill', col); } const bar = box2.querySelector('.barv i'); if (bar) { bar.style.width = fr * 100 + '%'; bar.style.backgroundColor = col; } const bl = box2.querySelectorAll('.blocks i'); bl.forEach((b, i) => { b.classList.toggle('gone', i >= Math.ceil(fr * bl.length)); b.style.setProperty('--bc', col); }); const L = fmtLeft(rem); const left = box2.querySelector('.left'); if (left) left.innerHTML = rem > 0 ? 'あと <b>' + L.n + '</b> ' + L.u : '<b>おしまい！</b>'; if (rem <= 0 && !rang) { rang = true; sfx.bell(); speak(ft.a.name + 'は おしまい。つぎは ' + (ft.b ? ft.b.name : '')); } };
+      f(); every(250, f);
+    }
+    if (ft.a && ft.b) speak(ft.done ? 'いまは ' + ft.b.name : 'まず ' + ft.a.name + '。つぎは ' + ft.b.name);
+  }
+
+  /* ---------- カードを えらぶ（えもじ・しゃしん） ---------- */
+  function openLib(onPick, allowPhoto) {
+    const m = $('#libModal'), P = $('#libPanel'); P.innerHTML = '';
+    const close = () => m.classList.remove('open');
+    P.append(h('div', { class: 'panel-head' }, h('h2', null, '🃏 カードを えらぶ'), h('button', { type: 'button', class: 'btn', onclick: close }, 'とじる')),
+      allowPhoto ? h('div', { class: 'btns' },
+        h('button', { type: 'button', class: 'btn primary', onclick: async () => { const fs = await pickFile('image/*', 'environment'); if (!fs) return; const id = await savePhoto(fs[0]); close(); onPick({ id: 'i' + uid(), name: 'しゃしん', emoji: '📷', media: id, min: 0, count: 0, kind: 'do' }); } }, '📷 カメラで とる'),
+        h('button', { type: 'button', class: 'btn primary', onclick: async () => { const fs = await pickFile('image/*'); if (!fs) return; const id = await savePhoto(fs[0]); close(); onPick({ id: 'i' + uid(), name: 'しゃしん', emoji: '📷', media: id, min: 0, count: 0, kind: 'do' }); } }, '🖼️ しゃしんを えらぶ')) : null,
+      h('div', { class: 'lib' }, LIB.map(([g, list]) => [h('h4', null, g), list.map(([e, n, kd]) => h('button', { type: 'button', onclick: () => { close(); onPick({ id: 'i' + uid(), name: n, emoji: e, media: null, min: 0, count: 0, kind: kd || 'do' }); } }, E(e), n))])));
+    m.classList.add('open'); m.scrollTop = 0;
+  }
+  $('#libModal').addEventListener('click', e => { if (e.target.id === 'libModal') $('#libModal').classList.remove('open'); });
+
+  /* ============================================================
+     せんせい：よていを つくる・かえる
+     ============================================================ */
+  function renderTeacher() {
+    screen = 'teacher';
+    const k = kid(), t = T();
+    setView('teacher', [
+      h('h1', { class: 'title' }, '✏️ ' + k.name + ' の よてい', h('small', null, 'よていを つくって「きょうに する」')),
+      h('div', { class: 'plans' },
+        h('div', { class: 'pl today' }, E('🗓️'), h('div', { class: 'nm' }, 'きょう（' + today().slice(5).replace('-', '/') + '）', h('small', null, t ? (t.plan || 'きょうの よてい') + '・' + t.items.length + 'こ・いま ' + Math.min(t.idx + 1, t.items.length) + 'ばんめ' : 'まだ きまって いません')),
+          t ? thumbs(t.items) : null,
+          t ? h('button', { type: 'button', class: 'mid-btn', onclick: () => { if (tapOk()) renderEdit('today'); } }, '✏️ きょうを かえる') : null,
+          t ? h('button', { type: 'button', class: 'mid-btn', onclick: () => { if (!tapOk()) return; if (confirm('きょうの よていを さいしょ（1ばんめ）から やりなおしますか？')) { t.idx = 0; t.start = NOW(); t.used = {}; t.paused = false; persist(); renderTeacher(); } } }, '↩ さいしょから') : null),
+        k.plans.map((p, i) => h('div', { class: 'pl' }, E('📋'), h('div', { class: 'nm' }, p.name, h('small', null, p.items.length + 'こ')), thumbs(p.items),
+          h('button', { type: 'button', class: 'mid-btn', onclick: () => { if (!tapOk()) return; if (t && t.idx > 0 && !confirm('きょうの よていを「' + p.name + '」に おきかえますか？')) return; startToday(k, p); toast('「' + p.name + '」を きょうの よていに しました'); renderTeacher(); } }, '▶ きょうに する'),
+          h('button', { type: 'button', class: 'mid-btn', onclick: () => { if (tapOk()) renderEdit(p.id); } }, '✏️ なおす'),
+          h('button', { type: 'button', class: 'ibtn', title: 'コピー', onclick: () => { const c = JSON.parse(JSON.stringify(p)); c.id = 'p' + uid(); c.name = p.name + '（コピー）'; c.items.forEach(x => { x.id = 'i' + uid(); }); k.plans.splice(i + 1, 0, c); persist(); renderTeacher(); } }, '📄'),
+          h('button', { type: 'button', class: 'ibtn warn', title: 'けす', onclick: () => { if (confirm('「' + p.name + '」を けしますか？')) { k.plans.splice(i, 1); persist(); cleanMedia(); renderTeacher(); } } }, '🗑')))),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'big-btn blue', onclick: () => { if (!tapOk()) return; const p = { id: 'p' + uid(), name: ['げつようび', 'かようび', 'すいようび', 'もくようび', 'きんようび', 'どようび', 'にちようび'][(new Date().getDay() + 6) % 7] + 'の よてい', items: [] }; k.plans.push(p); persist(); renderEdit(p.id); } }, '＋ あたらしい よてい'),
+        h('button', { type: 'button', class: 'big-btn go', onclick: () => { if (tapOk()) renderNow(); } }, '▶ こどもの がめんへ'))
+    ]);
+  }
+  function thumbs(items) { return h('div', { class: 'thumbs' }, items.slice(0, 8).map(x => pic(x))); }
+  // よていの へんしゅう（target: 'today' または plan id）
+  function renderEdit(target) {
+    screen = 'edit';
+    const k = kid(), t = T(), isToday = target === 'today';
+    const plan = isToday ? null : k.plans.find(p => p.id === target);
+    if (!isToday && !plan) { renderTeacher(); return; }
+    const items = isToday ? copyItems(t.items) : plan.items;
+    const before = isToday ? copyItems(t.items.slice(t.idx)) : null;
+    const curId = isToday && t.items[t.idx] ? t.items[t.idx].id : null;
+    const list = h('div', { class: 'items' });
+    const draw = () => {
+      list.innerHTML = '';
+      items.forEach((it, i) => {
+        const past = isToday && i < items.findIndex(x => x.id === curId) && curId;
+        const nm = h('input', { class: 'n', type: 'text', value: it.name, oninput: e => { it.name = e.target.value; if (!isToday) persistSoon(); } });
+        const p = pic(it); p.title = 'カードを かえる'; p.addEventListener('click', () => openLib(r => { it.emoji = r.emoji; it.media = r.media; if (it.name === 'しゃしん' || !it.name || r.name !== 'しゃしん') it.name = r.name === 'しゃしん' ? it.name : r.name; if (r.kind !== 'do') it.kind = r.kind; if (!isToday) persist(); draw(); }, true));
+        const stp = (lab, get, set, fmt) => h('div', { class: 'stp' }, lab, h('button', { type: 'button', onclick: () => { set(-1); if (!isToday) persist(); draw(); } }, '−'), h('b', null, fmt(get())), h('button', { type: 'button', onclick: () => { set(1); if (!isToday) persist(); draw(); } }, '＋'));
+        list.append(h('div', { class: 'item' + (it.kind !== 'do' ? ' ' + it.kind : '') + (past ? ' past' : '') },
+          h('span', { class: 'no' }, String(i + 1)), p, nm,
+          stp('⏱️', () => it.min, d => { const j = MINS.indexOf(it.min); it.min = MINS[Math.max(0, Math.min(MINS.length - 1, (j < 0 ? 0 : j) + d))]; }, v => v ? minYomi(v) : 'なし'),
+          stp('🔁', () => it.count, d => { it.count = Math.max(0, Math.min(10, (it.count || 0) + d)); }, v => v ? v + 'かい' : 'なし'),
+          h('div', { class: 'sm-seg' }, Object.keys(KIND).map(kd => h('button', { type: 'button', class: it.kind === kd ? 'on' : '', onclick: () => { it.kind = kd; if (!isToday) persist(); draw(); } }, KIND[kd].n))),
+          h('button', { type: 'button', class: 'ibtn', onclick: () => { if (i > 0) { items.splice(i - 1, 0, items.splice(i, 1)[0]); if (!isToday) persist(); draw(); } } }, '▲'),
+          h('button', { type: 'button', class: 'ibtn', onclick: () => { if (i < items.length - 1) { items.splice(i + 1, 0, items.splice(i, 1)[0]); if (!isToday) persist(); draw(); } } }, '▼'),
+          h('button', { type: 'button', class: 'ibtn warn', onclick: () => { items.splice(i, 1); if (!isToday) persist(); draw(); } }, '🗑')));
+      });
+      if (!items.length) list.append(h('div', { class: 'privacy' }, 'したの ボタンで カードを ふやそう'));
+    };
+    draw();
+    const addOne = r => { items.push(r); if (!isToday) persist(); draw(); };
+    const nameIn = plan ? h('input', { type: 'text', value: plan.name, oninput: e => { plan.name = e.target.value; persistSoon(); } }) : h('b', { style: 'font-size:22px' }, '🗓️ きょうの よてい（' + today().slice(5).replace('-', '/') + '）');
+    const saveToday = () => {
+      // いま やって いる ものより まえは そのまま、いまの ものの いちを さがす
+      let ni = items.findIndex(x => x.id === curId);
+      if (ni < 0) ni = Math.min(t.idx, items.length);
+      const after = copyItems(items.slice(ni));
+      const d = diff(before, after);
+      t.items = copyItems(items);
+      if (ni !== t.idx) { t.idx = ni; }
+      if (curId && !t.items.some(x => x.id === curId)) { t.start = NOW(); t.paused = false; }
+      if (d.any) { d.add.concat(d.mv, d.tm).forEach(id => { t.changed[id] = 1; }); if (S().notify) t.pending = { before, after, at: NOW() }; }
+      persist(); cleanMedia();
+      toast(d.any ? (S().notify ? 'へんこうを ほぞん しました（こどもの がめんで おしらせ します）' : 'へんこうを ほぞん しました') : 'かわった ところは ありません');
+      renderTeacher();
+    };
+    setView('ed', [
+      h('div', { class: 'edhead' }, nameIn, h('button', { type: 'button', class: 'mid-btn', onclick: () => { if (tapOk()) { if (isToday && diff(before, items.slice(Math.max(0, items.findIndex(x => x.id === curId)))).any && !confirm('かえた ところを ほぞん しないで もどりますか？')) return; renderTeacher(); } } }, '◀ もどる')),
+      isToday ? h('div', { class: 'privacy', style: 'text-align:left' }, '🔄 きょうの よていを かえて「ほぞん」すると、こどもの がめんに「まえ → あと」の おしらせが でます（せっていで オフに できます）。おわった ものは うすく なって います。') : null,
+      list,
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'mid-btn', onclick: () => openLib(addOne, true) }, '🃏 カード・しゃしんを ふやす'),
+        h('button', { type: 'button', class: 'mid-btn', onclick: async () => { const fs = await pickFile('image/*', null, true); if (!fs) return; for (const f of fs) { const id = await savePhoto(f); items.push({ id: 'i' + uid(), name: 'しゃしん', emoji: '📷', media: id, min: 0, count: 0, kind: 'do' }); } if (!isToday) persist(); draw(); toast(fs.length + 'まい ふやしました。なまえを かいてね'); } }, '🖼️ しゃしんを まとめて'),
+        isToday ? h('button', { type: 'button', class: 'big-btn go', onclick: () => { if (tapOk()) saveToday(); } }, '✓ ほぞん') :
+          h('button', { type: 'button', class: 'big-btn go', onclick: () => { if (!tapOk()) return; persist(); if (!T() || confirm('この よていを きょうの よていに しますか？')) { startToday(k, plan); toast('きょうの よていに しました'); } renderTeacher(); } }, '▶ きょうに する'))
+    ]);
+  }
+
+  /* ============================================================
+     プリント（A4）
+     ============================================================ */
+  const PR_TYPES = [
+    { id: 'list', n: 'よていひょう（しゃしんつき・チェック らん）', e: '🗓️' },
+    { id: 'cards', n: 'きりとり カード（6まい）', e: '✂️' },
+    { id: 'ft', n: 'まず → つぎ ボード', e: '➡️' }
+  ];
+  const PF = '<div class="pf">© MieeL　みとおし ボード　www.mieel-support-school.com</div>';
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const blobToData = b => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(null); fr.readAsDataURL(b); });
+  async function dataOf(it) { if (!it || !it.media) return null; try { const m = await DB.get(it.media); return m ? await blobToData(m.blob) : null; } catch (e) { return null; } }
+  async function phHTML(it) { const d = await dataOf(it); return d ? '<img src="' + d + '" alt="">' : '<span class="pe">' + esc(it && it.emoji || '') + '</span>'; }
+  function srcItems(src) { const k = kid(); if (src === 'today') { const t = T(); return t ? t.items : []; } const p = k.plans.find(x => x.id === src); return p ? p.items : []; }
+  async function buildPages(type, o) {
+    o = o || {};
+    const k = kid(), out = [];
+    const items = srcItems(o.src || 'today');
+    const title = o.src && o.src !== 'today' ? ((k.plans.find(x => x.id === o.src) || {}).name || 'よてい') : 'きょうの よてい';
+    if (type === 'list') {
+      for (let i = 0; i < Math.max(1, items.length); i += 7) {
+        const part = items.slice(i, i + 7);
+        let rows = '';
+        for (const it of part) rows += '<div class="pli ' + (it.kind !== 'do' ? it.kind : '') + '"><span class="ph">' + await phHTML(it) + '</span><div class="t">' + esc(it.name) + '<small>' + [it.min ? '⏱️ ' + minYomi(it.min) : '', it.count ? '🔁 ' + it.count + 'かい' : '', it.kind === 'brk' ? '☕ きゅうけい' : it.kind === 'fun' ? '⭐ おたのしみ' : ''].filter(Boolean).join('　') + '</small></div><span class="ck"></span></div>';
+        out.push('<div class="ppage"><div class="phd"><h1>🗓️ ' + esc(title) + '<small>おわったら □ に ✓</small></h1><div class="nm">' + esc(k.name !== 'みんな' ? k.name : 'なまえ') + '</div></div><div class="plist">' + (rows || '<div class="pli"><div class="t">よていが ありません</div></div>') + '</div>' + PF + '</div>');
+      }
+    } else if (type === 'cards') {
+      const list = items.length ? items : [];
+      for (let i = 0; i < Math.max(1, list.length); i += 6) {
+        let cs = '';
+        for (const it of list.slice(i, i + 6)) cs += '<div class="pcard"><span class="ph">' + await phHTML(it) + '</span><b>' + esc(it.name) + '</b></div>';
+        out.push('<div class="ppage"><div class="phd"><h1>✂️ ' + esc(title) + '：カード<small>てんせんで きって つかおう</small></h1></div><div class="pcards">' + cs + '</div>' + PF + '</div>');
+      }
+    } else {
+      const ft = store.ft || {};
+      const box = async (lab, it) => '<div class="b"><h2>' + lab + '</h2><span class="ph">' + (o.blank === true || o.blank === 'true' || !it ? '' : await phHTML(it)) + '</span><b>' + (o.blank === true || o.blank === 'true' || !it ? '' : esc(it.name)) + '</b></div>';
+      out.push('<div class="ppage"><div class="phd"><h1>➡️ まず → つぎ<small>' + (o.blank === true || o.blank === 'true' ? 'しゃしんや えを はって つかおう' : '') + '</small></h1></div><div class="pft">' + await box('まず', ft.a) + '<div class="ar">➡</div>' + await box('つぎ', ft.b) + '</div>' + PF + '</div>');
+    }
+    return out;
+  }
+  window.MieelPrintAPI = {
+    version: 1,
+    app: { id: 'mitoshi-board', title: 'みとおし ボード', icon: '🗓️' },
+    list() {
+      const k = kid(), src = [['today', 'きょうの よてい']].concat(k.plans.map(p => [p.id, p.name]));
+      return PR_TYPES.map(t => ({ id: t.id, name: t.n, icon: t.e, params: t.id === 'ft' ? [{ key: 'blank', label: 'なかみ', opts: [[false, 'いまの まず→つぎ'], [true, 'からっぽ（はって つかう）']], def: false }] : [{ key: 'src', label: 'よてい', opts: src, def: 'today' }] }));
+    },
+    build(id, params) { return buildPages(id, params).then(pages => ({ pages, css: document.querySelector('style').textContent })); }
+  };
+
+/* ============================================================
+     🖨️ プリントの 画面（ほかの MieeL アプリと おなじ かたち：ひだりに せってい、みぎに A4 の みほん）
+     みほんと おなじ ものが いんさつ されます。
+     ============================================================ */
+  const PrintUI = (function () {
+    const MM = 96 / 25.4;
+    let st = null, pages = [], custom = null;
+    function types() { return window.MieelPrintAPI.list({ all: true }); }
+    function ensure() {
+      const list = types();
+      if (!st || !list.some(t => t.id === st.type)) st = { type: list[0].id, v: {} };
+      const t = list.find(x => x.id === st.type);
+      t.params.forEach(p => { if (st.v[p.key] === undefined || !p.opts.some(o => String(o[0]) === String(st.v[p.key]))) st.v[p.key] = p.def; });
+      return t;
+    }
+    function build() { ensure(); return window.MieelPrintAPI.build(st.type, Object.assign({}, st.v)).then(r => { pages = r.pages; }); }
+    // きまった ページ（つくった はっぴょう など）を みほんつきで いんさつ
+    function openPages(title, arr) { stopSpeak(); custom = { title, pages: arr }; pages = arr; $('#printModal').classList.add('open'); $('#printModal').scrollTop = 0; render(); }
+    function open(type) {
+      stopSpeak(); custom = null;
+      if (type) { ensure(); st.type = type; }
+      $('#printModal').classList.add('open'); $('#printModal').scrollTop = 0;
+      build().then(render);
+    }
+    function close() { $('#printModal').classList.remove('open'); }
+    function render() {
+      const t = custom ? null : ensure();
+      const P = $('#printPanel'); P.innerHTML = '';
+      const re = () => build().then(render);
+      const seg = (label, cur, opts, on, cls) => [h('div', { class: 'seglabel' }, label), h('div', { class: 'seg' + (cls ? ' ' + cls : '') }, opts.map(o => h('button', { type: 'button', class: String(cur) === String(o[0]) ? 'on' : '', onclick: () => on(o[0]) }, o[1])))];
+      const prev = h('div', { class: 'prprev' });
+      P.append(
+        h('div', { class: 'panel-head' }, h('h2', null, '🖨️ A4 プリント'), h('button', { type: 'button', class: 'btn ok', onclick: close }, 'とじる')),
+        h('div', { class: 'prgrid' },
+          custom ? h('div', { class: 'prctl' }, h('div', { class: 'seglabel' }, custom.title),
+            h('div', { class: 'btns', style: 'margin-top:16px' }, h('button', { type: 'button', class: 'btn blue', onclick: doIt }, '🖨️ いんさつ する')),
+            h('p', { class: 'note' }, 'いんさつの せってい：よう紙 A4・たて、よはく「なし」（または さいしょう）、「背景の グラフィック」オンが おすすめです。'))
+          : h('div', { class: 'prctl' },
+            seg('プリントの しゅるい', st.type, types().map(x => [x.id, (x.icon ? x.icon + ' ' : '') + x.name]), v => { st.type = v; re(); }, 'types'),
+            t.params.map(p => p.opts.length > 6
+              ? [h('div', { class: 'seglabel' }, p.label), h('select', { style: 'width:100%', onchange: e => { const o = p.opts.find(x => String(x[0]) === e.target.value); st.v[p.key] = o ? o[0] : e.target.value; re(); } }, p.opts.map(o => h('option', { value: String(o[0]), selected: String(o[0]) === String(st.v[p.key]) }, o[1])))]
+              : seg(p.label, st.v[p.key], p.opts, v => { st.v[p.key] = v; re(); })),
+            h('div', { class: 'btns', style: 'margin-top:16px' },
+              h('button', { type: 'button', class: 'btn', onclick: re }, '🔄 べつの もんだい'),
+              h('button', { type: 'button', class: 'btn blue', onclick: doIt }, '🖨️ いんさつ する')),
+            h('p', { class: 'note' }, 'いんさつの せってい：よう紙 A4・たて、よはく「なし」（または さいしょう）、「背景の グラフィック」オンが おすすめです。'),
+            h('p', { class: 'note' }, pages.length + 'まい（みほんと おなじ ものが いんさつ されます）')),
+          prev));
+      const W = Math.max(240, (prev.clientWidth || 600) - 24), sc = Math.min(1, W / (210 * MM));
+      pages.forEach(pg => {
+        const w = h('div', { class: 'pwrap', style: 'width:' + (210 * MM * sc) + 'px;height:' + (297 * MM * sc) + 'px', html: pg });
+        w.firstChild.style.transform = 'scale(' + sc + ')';
+        prev.appendChild(w);
+      });
+    }
+    function doIt() { const root = $('#printRoot'); root.innerHTML = pages.join(''); setTimeout(() => window.print(), 60); }
+    window.addEventListener('afterprint', () => { $('#printRoot').innerHTML = ''; });
+    $('#printModal').addEventListener('click', e => { if (e.target.id === 'printModal') close(); });
+    $('#printBtn').addEventListener('click', () => { if (tapOk(500)) open(); });
+    return { open, openPages, close };
+  })();
+
+  /* ============================================================
+     先生用せってい
+     ============================================================ */
+  function openSettings() { stopSpeak(); renderSettings(); $('#settings').classList.add('open'); $('#settings').scrollTop = 0; }
+  function closeSettings() { persist(); $('#settings').classList.remove('open'); document.body.classList.toggle('calm', !!S().calm); if (screen === 'home') renderHome(); else if (screen === 'teacher') renderTeacher(); else if (screen === 'who') renderWho(); else if (screen === 'now' && !document.querySelector('.ov')) renderNow(); chips(); }
+  function refresh() { const m = $('#settings'), y = m.scrollTop; renderSettings(); m.scrollTop = y; }
+  const setS = (k, v) => { S()[k] = v; persist(); refresh(); };
+  function seg(value, opts, onPick) { return h('div', { class: 'seg' }, opts.map(o => h('button', { type: 'button', class: String(o[0]) === String(value) ? 'on' : '', onclick: () => onPick(o[0]) }, o[1]))); }
+  const srow = (label, ctl, note) => h('div', { class: 'srow' }, h('div', null, label, note ? h('div', { class: 'note' }, note) : null), ctl);
+  const chk = (label, k, note) => h('label', { class: 'row' }, h('span', null, label, note ? h('div', { class: 'note' }, note) : null), h('input', { type: 'checkbox', checked: !!S()[k], onchange: e => { S()[k] = e.target.checked; persist(); } }));
+  function renderSettings() {
+    const P = $('#settingsPanel'); P.innerHTML = '';
+    const add = (...a) => P.append(...a.filter(Boolean));
+    const st = S();
+    add(h('div', { class: 'panel-head' }, h('h2', null, '⚙️ 先生用せってい'), h('button', { type: 'button', class: 'btn ok', onclick: closeSettings }, '✓ とじる')),
+      h('p', { class: 'note' }, 'この画面は 右上の ⚙️ を 1.5秒 ながおし すると ひらきます。よていの へんしゅうは ホームの「よていを つくる・かえる」（1びょう ながおし）から。'));
+    add(h('h3', null, '👦 こども'));
+    store.kids.forEach((k, i) => add(h('div', { class: 'prow' },
+      h('button', { type: 'button', class: 'mini-btn', onclick: () => { k.icon = ICONS[(ICONS.indexOf(k.icon) + 1) % ICONS.length]; persist(); refresh(); } }, E(k.icon)),
+      h('input', { type: 'text', value: k.name, style: 'flex:1;min-width:140px', oninput: e => { k.name = e.target.value; persistSoon(); } }),
+      h('span', { class: 'note' }, '📋 ' + k.plans.length + 'こ'),
+      store.kids.length > 1 ? h('button', { type: 'button', class: 'mini-btn warn', onclick: () => { if (confirm(k.name + ' を けしますか？（よていと しゃしんも きえます）')) { store.kids.splice(i, 1); if (store.currentId === k.id) store.currentId = store.kids[0].id; persist(); cleanMedia(); refresh(); } } }, 'けす') : null)));
+    add(h('div', { class: 'btns' }, h('button', { type: 'button', class: 'btn primary', onclick: () => { store.kids.push(newKid('なまえ' + (store.kids.length + 1), ICONS[store.kids.length % ICONS.length])); persist(); refresh(); } }, '＋ こどもを ふやす')),
+      h('p', { class: 'note' }, '2人いじょう いると、はじめに「だれの よてい？」が でます。'));
+    add(h('h3', null, '⏱️ のこりじかんの みせかた'),
+      srow('タイマー', seg(st.timer, [['pie', '🕒 えんが へる'], ['bar', '▬ バーが へる'], ['blocks', '🟩 ブロックが きえる']], v => setS('timer', v)), 'どれも のこりが すくなく なると みどり → きいろ → あか に かわります。'),
+      srow('もうすぐ おしまいの しらせ', seg(st.warn, [[0, 'なし'], [1, '1ぷん まえ'], [2, '2ふん まえ'], [5, '5ふん まえ']], v => setS('warn', Number(v)))),
+      chk('おわる じこく（🕒 10:30 に おわり）を みせる', 'endTime'),
+      chk('じかんに なったら じどうで つぎへ すすむ', 'autoNext', 'オフ：「おしまいの じかん」の がめんで「おわった」を おしてから つぎへ（おすすめ）'),
+      chk('よていを かえたら、こどもの がめんで「まえ → あと」を しらせる', 'notify'));
+    add(h('h3', null, '💬 ことばカード（いまの がめんの 💬）'),
+      h('p', { class: 'note' }, '1ぎょうに 1つ。「あと 1かい」「おわったら きゅうけい」など、よく つかう ことばを おおきく みせて よみあげます。'),
+      h('textarea', { oninput: e => { st.phrases = e.target.value; persistSoon(); } }, st.phrases),
+      h('div', { class: 'btns' }, h('button', { type: 'button', class: 'btn', onclick: () => setS('phrases', DEFAULT_PHRASES.join('\n')) }, 'はじめの ことばに もどす')));
+    add(h('h3', null, '🔊 おと・ひょうじ'), chk('よみあげ', 'voice'), chk('こうかおん', 'sound'),
+      srow('おおきさ', h('input', { type: 'range', min: '0.2', max: '1', step: '0.1', value: st.volume, onchange: e => { st.volume = Number(e.target.value); persist(); } })),
+      srow('よみあげの はやさ', seg(st.rate, [[0.8, 'ゆっくり'], [0.95, 'ふつう'], [1.1, 'はやめ']], v => setS('rate', Number(v)))),
+      chk('うごきを ひかえめに', 'calm'));
+    add(h('h3', null, '🔒 データ（この たんまつの なかだけ）'),
+      h('p', { class: 'note' }, 'しゃしんと よていは この iPad（ブラウザ）の なかだけに ほぞん され、インターネットには おくりません。ほかの たんまつに うつす ときや、まんいちに そなえる ときは「ファイルに かきだす」で ほぞん して ください（しゃしんも はいります）。ブラウザの「きろくを けす」を すると きえます。'),
+      h('div', { class: 'btns' },
+        h('button', { type: 'button', class: 'btn primary', onclick: exportData }, '⬇ ファイルに かきだす'),
+        h('button', { type: 'button', class: 'btn', onclick: importData }, '⬆ ファイルから よみこむ'),
+        h('button', { type: 'button', class: 'btn warn', onclick: async () => { if (!confirm('ぜんぶの よていと しゃしんを けしますか？（もとに もどせません）')) return; await DB.clear(); store = normalize(null); persist(); refresh(); renderHome(); } }, '🗑 ぜんぶ けす')));
+    add(h('h3', null, '🖨️ プリント（A4）'),
+      h('div', { class: 'btns' }, h('button', { type: 'button', class: 'btn primary', onclick: () => { closeSettings(); PrintUI.open(); } }, '🖨️ プリントの 画面を ひらく')),
+      h('p', { class: 'note' }, 'よていひょう（しゃしんつき）・きりとり カード・まず→つぎ ボードを いんさつ できます。みほんと おなじ ものが いんさつ されます。'));
+    add(h('h3', null, '💡 つかいかたの ヒント'),
+      h('p', { class: 'note' }, '・「いつ おわる？」は のこりの りょう（えん・バー・ブロック）と いろで、「つぎは なに？」は いつも みぎに みせます。', h('br'),
+        '・「あと 1かい」は 🔁 かいすうを いれると ○ を タッチで けして いけます。のこり 1かいで「あと 1かい！」と おおきく でます。', h('br'),
+        '・つぎが きゅうけい・おたのしみの ときは「おわったら きゅうけい！」と でます（カードの しゅるいで きめます）。', h('br'),
+        '・よていが かわる ときは、ちょくぜんでも「まえ → あと」で しらせると おちついて きりかえ やすく なります。かわった カードには「かわった」の しるしが つきます。'));
+    add(h('div', { class: 'btns', style: 'margin-top:20px' }, h('button', { type: 'button', class: 'btn ok', onclick: closeSettings }, '✓ とじる')));
+    add(h('div', { class: 'mieel-foot' }, h('div', { class: 'mieel-brand' }, h('span', { class: 'orb-mini' }), h('strong', null, 'MieeL')),
+      h('a', { href: 'https://www.mieel-support-school.com/', target: '_blank', rel: 'noopener' }, 'www.mieel-support-school.com'),
+      h('div', null, '© みとおし ボード（特別支援教育向け）・学校や家庭での利用は自由です（無断転載・再配布・販売はお断り）')));
+  }
+  async function exportData() {
+    const media = [];
+    for (const m of await DB.all()) media.push({ id: m.id, at: m.at, data: await blobToData(m.blob) });
+    const blob = new Blob([JSON.stringify({ app: 'mitoshi-board', v: 1, store, media })], { type: 'application/json' });
+    const d = new Date(), name = 'みとおしボード_' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '.json';
+    const a = h('a', { href: URL.createObjectURL(blob), download: name }); document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    toast('ファイルに かきだしました（' + media.length + 'まいの しゃしん）');
+  }
+  async function importData() {
+    const fs = await pickFile('application/json,.json'); if (!fs) return;
+    try {
+      const j = JSON.parse(await fs[0].text());
+      if (j.app !== 'mitoshi-board') throw new Error('x');
+      if (!confirm('いまの データを、この ファイルの なかみに おきかえますか？')) return;
+      await DB.clear();
+      for (const m of j.media || []) { const r = await fetch(m.data); await DB.put({ id: m.id, at: m.at || Date.now(), blob: await r.blob() }); }
+      store = normalize(j.store); persist(); Object.keys(URLS).forEach(k => delete URLS[k]);
+      toast('よみこみました'); refresh(); renderHome();
+    } catch (e) { toast('この ファイルは よみこめません'); }
+  }
+
+  (function () {
+    const g = $('#gear'); let t = 0;
+    g.addEventListener('pointerdown', e => { e.preventDefault(); g.classList.add('pressing'); t = setTimeout(() => { g.classList.remove('pressing'); openSettings(); }, 1500); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => g.addEventListener(ev, () => { clearTimeout(t); g.classList.remove('pressing'); }));
+    g.addEventListener('contextmenu', e => e.preventDefault());
+  })();
+  // 🏠 こどもの がめんでは ながおし（うっかり もどらない）、ほかは タップ
+  (function () {
+    const b = $('#homeBtn'); let t = 0;
+    b.addEventListener('pointerdown', e => { e.preventDefault(); if (CHILD.indexOf(screen) < 0) return; b.classList.add('pressing'); t = setTimeout(() => { b.classList.remove('pressing'); renderHome(); }, 1200); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => { clearTimeout(t); b.classList.remove('pressing'); }));
+    b.addEventListener('click', () => { if (CHILD.indexOf(screen) < 0 && tapOk()) { sfx.tap(); renderHome(); } });
+  })();
+  $('#settings').addEventListener('click', e => { if (e.target.id === 'settings') closeSettings(); });
+  $('#whoChip').addEventListener('click', () => { if (CHILD.indexOf(screen) < 0) renderWho(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeak(); else if (screen === 'now' && !document.querySelector('.ov')) renderNow(); });
+
+  if (/[?&]test=1/.test(location.search)) window.__mt = { store: () => store, T, renderNow, finishItem, diff, savePhoto };
+  document.body.classList.toggle('calm', !!S().calm);
+  if (canSpeak) { loadVoice(); if ('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = loadVoice; }
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !EMBED) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (store.kids.length > 1 && !EMBED) renderWho(); else renderHome();
+  cleanMedia();
+})();
+</script>
+</body>
+</html>
