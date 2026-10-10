@@ -137,6 +137,8 @@
   .nextbox .nm { font-size: clamp(22px, 3vw, 36px); text-align: center; }
   .thenmsg { font-size: clamp(18px, 2.4vw, 28px); text-align: center; background: #E6FCF5; color: #087F5B; border-radius: 16px; padding: 6px 12px; }
   .thenmsg.brk { background: #E6FCF5; } .thenmsg.fun { background: #FFF0F6; color: #C2255C; }
+  .tools { display: flex; gap: 8px; }
+  .strip .scard { cursor: pointer; font: inherit; font-size: clamp(11px, 1.3vw, 14px); color: inherit; }
   .nowfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .donebtn { flex: 1; min-width: min(320px, 70vw); max-width: 520px; min-height: 84px; border-radius: 999px; border: none; background: var(--go); color: #fff; font-size: clamp(24px, 3.4vw, 38px); box-shadow: 0 8px 0 var(--go-d); }
   .donebtn:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--go-d); }
@@ -577,7 +579,7 @@ function jaSay(t) {
     const it = t.items[t.idx], nx = t.items[t.idx + 1];
     warned = remaining() <= S().warn * 60000 && it.min > 0 && S().warn > 0; endShown = false;
     // うえ：きょう ぜんぶ
-    const strip = h('div', { class: 'strip' }, t.items.map((x, i) => h('div', { class: 'scard' + (i < t.idx ? ' done' : i === t.idx ? ' cur' : '') + (x.kind !== 'do' ? ' ' + x.kind : '') + (t.changed[x.id] ? ' chg' : '') }, pic(x), x.name)));
+    const strip = h('div', { class: 'strip' }, t.items.map((x, i) => h('button', { type: 'button', class: 'scard' + (i < t.idx ? ' done' : i === t.idx ? ' cur' : '') + (x.kind !== 'do' ? ' ' + x.kind : '') + (t.changed[x.id] ? ' chg' : ''), onclick: () => { if (i !== t.idx && tapOk(500)) askJump(i); } }, pic(x), x.name)));
     // いま
     const tbox = h('div', { class: 'tbox' });
     const cur = h('div', { class: 'curbox ' + (it.kind !== 'do' ? it.kind : '') },
@@ -590,7 +592,8 @@ function jaSay(t) {
     const pauseB = it.min ? h('button', { type: 'button', class: 'tool', 'aria-label': 'とめる・すすめる', onclick: () => togglePause(pauseB) }, t.paused ? '▶' : '⏸') : null;
     const phrB = h('button', { type: 'button', class: 'tool', 'aria-label': 'ことば', onclick: () => togglePhr() }, '💬');
     const doneB = h('button', { type: 'button', class: 'donebtn', onclick: () => { if (tapOk(800)) finishItem(); } }, it.count ? '✓ ぜんぶ おわった' : '✓ おわった');
-    setView('now', [strip, warnbar, h('div', { class: 'nowmain' }, cur, nextb), h('div', { class: 'nowfoot' }, pauseB || h('span'), doneB, phrB)]);
+    const backB = t.idx > 0 ? h('button', { type: 'button', class: 'tool', 'aria-label': 'ひとつ もどる', title: 'ひとつ もどる', onclick: () => { if (tapOk(500)) askJump(t.idx - 1); } }, '↩') : null;
+    setView('now', [strip, warnbar, h('div', { class: 'nowmain' }, cur, nextb), h('div', { class: 'nowfoot' }, h('div', { class: 'tools' }, backB, pauseB), doneB, phrB)]);
     const curCard = strip.children[t.idx]; if (curCard) setTimeout(() => curCard.scrollIntoView({ inline: 'center', block: 'nearest' }), 50);
     // タイマー・かいすう
     if (it.count) drawTokens(tbox, it);
@@ -659,7 +662,8 @@ function jaSay(t) {
   function finishItem() {
     const t = T(); if (!t) return;
     const it = t.items[t.idx], nx = t.items[t.idx + 1];
-    t.idx++; t.start = NOW(); t.paused = false; persist();
+    rememberSpent(t);
+    t.idx++; t.start = NOW() - ((t.spent || {})[nx ? nx.id : ''] || 0) / SPEED; t.paused = false; persist();
     sfx.done(); FX.small(document.querySelector('.donebtn') || document.body);
     if (!nx) { renderAllDone(); return; }
     // つぎへの きりかえ（まえ → つぎ）
@@ -673,10 +677,35 @@ function jaSay(t) {
   }
   function renderAllDone() {
     const t = T();
-    setView('now', [h('div', { class: 'strip' }, t.items.map(x => h('div', { class: 'scard done' }, pic(x), x.name))),
+    setView('now', [h('div', { class: 'strip' }, t.items.map((x, i) => h('button', { type: 'button', class: 'scard done', onclick: () => { if (tapOk(500)) askJump(i); } }, pic(x), x.name))),
       h('div', { class: 'alldone' }, h('div', { class: 'emo', style: 'font-size:clamp(80px,16vh,150px)' }, '🎉'), h('h1', { class: 'title' }, 'きょうの よていは ぜんぶ おしまい！', h('small', null, 'よく がんばったね')),
-        h('div', { class: 'actions' }, h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (tapOk()) renderHome(); } }, '🏠 おわる')))]);
+        h('div', { class: 'actions' }, h('button', { type: 'button', class: 'mid-btn', onclick: () => { if (tapOk(500)) askJump(t.items.length - 1); } }, '↩ ひとつ もどる'), h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (tapOk()) renderHome(); } }, '🏠 おわる')))]);
     FX.big(); speak('きょうの よていは ぜんぶ おしまい！ よく がんばったね');
+  }
+  // いま やって いた じかんを おぼえて おく（もどった ときは つづきから）
+  function rememberSpent(t) { const it = t.items[t.idx]; if (!it) return; t.spent = t.spent || {}; t.spent[it.id] = Math.min(elapsed(), it.min ? it.min * 60000 : elapsed()); }
+  // まちがえて すすんだ とき：ひとつ もどる・うえの よていへ とぶ（うっかり タッチで とばないように たしかめる）
+  function askJump(i) {
+    const t = T(); if (!t || i < 0 || i >= t.items.length) return;
+    const it = t.items[i], back = i < t.idx;
+    document.querySelectorAll('.ov').forEach(x => x.remove());
+    const ov = h('div', { class: 'ov' }, h('h1', null, back ? '↩ もどる？' : '⏩ とぶ？'),
+      h('div', { class: 'tr' }, h('div', { class: 'card new' }, pic(it), h('b', null, it.name))),
+      h('div', { class: 'sub' }, back ? it.name + ' に もどって、つづきから やるよ' : it.name + ' から はじめるよ（あいだの よていは おわった ことに なるよ）'),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'big-btn go', onclick: () => { if (!tapOk(500)) return; ov.remove(); jumpTo(i); } }, back ? '↩ もどる' : '⏩ とぶ'),
+        h('button', { type: 'button', class: 'big-btn white', onclick: () => { if (tapOk()) ov.remove(); } }, 'やめる')));
+    document.body.append(ov);
+    speak(it.name + ' に ' + (back ? 'もどる？' : 'とぶ？'));
+  }
+  function jumpTo(i) {
+    const t = T(); if (!t) return;
+    if (t.idx < t.items.length) rememberSpent(t);
+    const it = t.items[i];
+    t.idx = i; t.paused = false;
+    t.start = NOW() - ((t.spent || {})[it.id] || 0) / SPEED;
+    persist(); sfx.tap();
+    renderNow();
   }
   // ことば（あと1かい・おわったら きゅうけい など）
   function togglePhr() {
